@@ -185,6 +185,7 @@
         <module>api-audit</module>
         <module>collectors/artifact/artifactory</module>
         <module>collectors/build/bamboo</module>
+		<module>collectors/build/cast</module>
         <module>collectors/build/jenkins</module>
         <module>collectors/build/jenkins-cucumber</module>
         <module>collectors/build/jenkins-codequality</module>
@@ -232,6 +233,7 @@
         <module>api-audit</module>
         <module>collectors/artifact/artifactory</module>
         <module>collectors/build/bamboo</module>
+		<module>collectors/build/cast</module>
         <module>collectors/build/jenkins</module>
         <module>collectors/build/jenkins-cucumber</module>
         <module>collectors/build/jenkins-codequality</module>

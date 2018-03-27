@@ -302,7 +302,7 @@ body {
     margin-bottom: 50px;
 
     .dashboard-logo {
-        background: url(@dash-header-logo-url) no-repeat center center;
+        background: url(@dash-header-logo-url) center center no-repeat, url(../assets/img/cast-logo.jpg) 23px 23px no-repeat;
         background-size: contain;
         display: inline-block;
         position: absolute;
@@ -316,6 +316,19 @@ body {
             background-image: url(@dash-header-logo-inverse-url);
         }
     }
+	.dashboard-logo-cast {
+        background: url(../assets/img/cast-logo.jpg) no-repeat center center;
+        background-size: contain;
+        display: inline-block;
+        position: absolute;
+        left: @dash-header-logo-left;
+        top: @dash-header-logo-top;
+        width: @dash-header-logo-width;
+        height: @dash-header-logo-height;
+    }
+	
+	
+
 
     // switch between pipeline view
     .pipeline-toggle {
