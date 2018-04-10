@@ -5,18 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CastAIPClientSelector {
+public class CastClientSelector {
 
     //private final DefaultSonar6Client sonar6Client;
-    private final DefaultCastAIPClient castClient;
+    private final DefaultCastClient castClient;
 
     @Autowired
-    public CastAIPClientSelector(DefaultCastAIPClient castClient) {
+    public CastClientSelector(DefaultCastClient castClient) {
         //this.sonar6Client = sonar6Client;
         this.castClient = castClient;
     }
 
-    public CastAIPClient getCastClient(Double version) {
+    public CastClient getCastClient(Double version) {
         return ((version == null) || (version < 6.3)) ? castClient:castClient;
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
  */
 @Component
 @ConfigurationProperties(prefix = "cast")
-public class CastAIPSettings {
+public class CastSettings {
     private String cron;
     private String username;
     private String password;

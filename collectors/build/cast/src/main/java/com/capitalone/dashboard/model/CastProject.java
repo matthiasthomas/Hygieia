@@ -1,20 +1,11 @@
-/**
- * 
- */
-package com.capitalone.dashboard.collector;
+package com.capitalone.dashboard.model;
 
-import com.capitalone.dashboard.model.CollectorItem;
-
-/**
- * @author KKH
- *
- */
-public class CastAIPCollectorItem extends CollectorItem{
+public class CastProject extends CollectorItem {
     protected static final String INSTANCE_URL = "instanceUrl";
     protected static final String APPLICATION_NAME = "appName";
     protected static final String APPLICATION_ID = "appId";
     protected static final String SNAPSHOT_ID = "snapId";
-    
+
     public String getInstanceUrl() {
         return (String) getOptions().get(INSTANCE_URL);
     }
@@ -24,21 +15,21 @@ public class CastAIPCollectorItem extends CollectorItem{
     }
 
     public String getApplicationId() {
-        return (String) getOptions().get(APPLICATION_ID );
+        return (String) getOptions().get(APPLICATION_ID);
     }
 
     public void setApplicationId(String id) {
-        getOptions().put(APPLICATION_ID , id);
+        getOptions().put(APPLICATION_ID, id);
     }
 
     public String getApplicationName() {
-        return (String) getOptions().get(APPLICATION_NAME );
+        return (String) getOptions().get(APPLICATION_NAME);
     }
 
     public void setApplicationName(String name) {
         getOptions().put(APPLICATION_NAME, name);
     }
-    
+
     public String getSnapshotId() {
         return (String) getOptions().get(SNAPSHOT_ID);
     }
@@ -47,14 +38,19 @@ public class CastAIPCollectorItem extends CollectorItem{
         getOptions().put(SNAPSHOT_ID, name);
     }
 
+    @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
-        CastAIPCollectorItem that = (CastAIPCollectorItem) o;
-        return getApplicationId().equals(that.getApplicationId()) && getInstanceUrl().equals(that.getInstanceUrl()) && getSnapshotId().equals(that.getSnapshotId());
+        CastProject that = (CastProject) o;
+        return getApplicationId().equals(that.getApplicationId()) && getSnapshotId().equals(that.getSnapshotId())
+                && getInstanceUrl().equals(that.getInstanceUrl());
     }
 
+    @Override
     public int hashCode() {
         int result = getInstanceUrl().hashCode();
         result = 31 * result + getApplicationId().hashCode();
