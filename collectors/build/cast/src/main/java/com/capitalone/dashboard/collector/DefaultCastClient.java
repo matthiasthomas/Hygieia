@@ -93,8 +93,6 @@ public class DefaultCastClient implements CastClient {
 				+ qualityIndicatorsUrl;
 		try {
 
-			LOG.info("url: " + url);
-
 			ResponseEntity<String> response = rest.exchange(url, HttpMethod.GET, this.httpHeaders, String.class);
 			JSONParser jsonParser = new JSONParser();
 			JSONArray jsonArray = (JSONArray) jsonParser.parse(response.getBody());
@@ -116,7 +114,7 @@ public class DefaultCastClient implements CastClient {
 			CodeQualityMetric metric;
 			JSONObject resultJson;
 			double metricMaintainabilityValue = 0.0, metricRiskValue = 0.0;
-			LOG.info("metrics.length: " + metrics.length);
+			
 			for (int i = 0; i < metrics.length && applicationResults.size() >= metrics.length; i++) {
 				metric = new CodeQualityMetric(metrics[i]);
 				resultJson = (JSONObject) applicationResults.get(i);
@@ -143,8 +141,6 @@ public class DefaultCastClient implements CastClient {
 					break;
 				}
 			}
-
-			LOG.info("APRES LA BOUCLE ?!!");
 
 			CodeQualityMetric metricRisk = new CodeQualityMetric("Risk Indicator");
 			CodeQualityMetric metricMaintainability = new CodeQualityMetric("Maintainability Indicator");
