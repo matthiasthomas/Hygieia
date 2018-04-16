@@ -50,6 +50,7 @@ public class DefaultCastClient implements CastClient {
 	private static final String ID_EFFICIENCY = "60014";
 	private static final String ID_SECURITY = "60016";
 	private static final String ID_TQI = "60017";
+	private static final String ID_CRITICAL = "67011";
 
 	@Autowired
 	public DefaultCastClient(Supplier<RestOperations> restOperationsSupplier, CastSettings settings) {
@@ -88,7 +89,7 @@ public class DefaultCastClient implements CastClient {
 	@Override
 	public CodeQuality currentCodeQuality(CastProject project) {
 		String qualityIndicatorsUrl = "?quality-indicators=(" + ID_TRANSFERABILITY + "," + ID_CHANGEABILITY + ","
-				+ ID_ROBUSTNESS + "," + ID_EFFICIENCY + "," + ID_SECURITY + "," + ID_TQI + ")";
+				+ ID_ROBUSTNESS + "," + ID_EFFICIENCY + "," + ID_SECURITY + "," + ID_TQI + "," + ID_CRITICAL + ")";
 		String url = project.getInstanceUrl() + URL_CAST_APPLICATION + "/" + project.getApplicationId() + "/results"
 				+ qualityIndicatorsUrl;
 		try {
@@ -107,34 +108,41 @@ public class DefaultCastClient implements CastClient {
 
 			// Init metrics
 
-			String[] metrics = { "Transferability", "Changeability", "Robustness", "Efficiency", "Security",
-					"Total Quality Index" };
+			String[] metrics = { "transfer", "change", "robustness", "efficiency", "security", "tqi", "critical" };
 
 			JSONArray applicationResults = (JSONArray) jsonObject.get("applicationResults");
 			CodeQualityMetric metric;
 			JSONObject resultJson;
 			double metricMaintainabilityValue = 0.0, metricRiskValue = 0.0;
-			
+
 			for (int i = 0; i < metrics.length && applicationResults.size() >= metrics.length; i++) {
 				metric = new CodeQualityMetric(metrics[i]);
 				resultJson = (JSONObject) applicationResults.get(i);
-				metric.setValue(((JSONObject) resultJson.get("result")).get("grade").toString());
+				String value = "";
+				// Health factors display a "grade" key
+				if (((JSONObject) resultJson.get("result")).get("grade") != null) {
+					value = ((JSONObject) resultJson.get("result")).get("grade").toString();
+				// Critical violations display a "value" key
+				} else if (((JSONObject) resultJson.get("result")).get("value") != null) {
+					value = ((JSONObject) resultJson.get("result")).get("value").toString();
+				}
+				metric.setValue(value);
 				codeQuality.getMetrics().add(metric);
 
 				switch (metrics[i]) {
-				case "Transferability":
+				case "transfer":
 					metricMaintainabilityValue += Double.parseDouble(metric.getValue().toString());
 					break;
-				case "Changeability":
+				case "change":
 					metricMaintainabilityValue += Double.parseDouble(metric.getValue().toString());
 					break;
-				case "Robustness":
+				case "robustness":
 					metricRiskValue += Double.parseDouble(metric.getValue().toString());
 					break;
-				case "Efficiency":
+				case "efficiency":
 					metricRiskValue += Double.parseDouble(metric.getValue().toString());
 					break;
-				case "Security":
+				case "security":
 					metricRiskValue += Double.parseDouble(metric.getValue().toString());
 					break;
 				default:
@@ -142,8 +150,8 @@ public class DefaultCastClient implements CastClient {
 				}
 			}
 
-			CodeQualityMetric metricRisk = new CodeQualityMetric("Risk Indicator");
-			CodeQualityMetric metricMaintainability = new CodeQualityMetric("Maintainability Indicator");
+			CodeQualityMetric metricRisk = new CodeQualityMetric("risk");
+			CodeQualityMetric metricMaintainability = new CodeQualityMetric("maintainability");
 
 			metricMaintainabilityValue /= 2;
 			metricRiskValue /= 3;

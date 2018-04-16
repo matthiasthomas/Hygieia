@@ -18,10 +18,11 @@
         };
 
         ctrl.minitabs = [
-            { name: "Static Analysis"},
-            { name: "Security"},
-            { name: "OpenSource"},
-            { name: "Tests"}
+            { name: "Static Analysis" },
+            { name: "Security" },
+            { name: "OpenSource" },
+            { name: "Tests" },
+            { name: "Cast" }
 
         ];
 
@@ -91,6 +92,20 @@
                 getMetric(caData.metrics, 'test_errors', 'Errors'),
                 getMetric(caData.metrics, 'tests', 'Tests')
             ];
+            ctrl.healthFactors = [
+                getMetric(caData.metrics, 'transfer', 'Transferability'),
+                getMetric(caData.metrics, 'change', 'Changeability'),
+                getMetric(caData.metrics, 'robustness', 'Robustness'),
+                getMetric(caData.metrics, 'efficiency', 'Efficiency'),
+                getMetric(caData.metrics, 'security', 'Security'),
+                getMetric(caData.metrics, 'risk', 'Risk Indicator'),
+                getMetric(caData.metrics, 'maintainability', 'Maintainability Indicator'),
+                getMetric(caData.metrics, 'tqi', 'Total Quality Indicator'),
+                getMetric(caData.metrics, 'critical', 'Critical Violations Count')
+            ]
+
+            console.log("ctrl.healthFactors: " + JSON.stringify(ctrl.healthFactors));
+
 
             ctrl.lineCoverage = getMetric(caData.metrics, 'line_coverage');
 
@@ -130,167 +145,167 @@
             }
         }
 
-            function getSecurityMetricsData (data) {
-                var issues = [];
-                var totalSize = _.isEmpty(data.metrics) ? 0 : data.metrics.length;
-                for (var index = 0; index < totalSize; ++index) {
-                    issues.push({name: data.metrics[index].name, formattedValue : data.metrics[index].formattedValue, status:data.metrics[index].status});
-                }
-                return issues;
+        function getSecurityMetricsData(data) {
+            var issues = [];
+            var totalSize = _.isEmpty(data.metrics) ? 0 : data.metrics.length;
+            for (var index = 0; index < totalSize; ++index) {
+                issues.push({ name: data.metrics[index].name, formattedValue: data.metrics[index].formattedValue, status: data.metrics[index].status });
             }
+            return issues;
+        }
 
 
-            function processTestResponse(response) {
-                var deferred = $q.defer();
+        function processTestResponse(response) {
+            var deferred = $q.defer();
 
-                ctrl.testResult = testResult;
+            ctrl.testResult = testResult;
 
-                ctrl.functionalTests = [];
-                var index;
-                var totalSize = _.isEmpty(response.result) ? 0 : response.result.length;
-                for (index = 0; index < totalSize; ++index) {
+            ctrl.functionalTests = [];
+            var index;
+            var totalSize = _.isEmpty(response.result) ? 0 : response.result.length;
+            for (index = 0; index < totalSize; ++index) {
 
-                    var testResult = _.isEmpty(response.result) ? {testCapabilities: []} : response.result[index];
-                    var allZeros = {
-                        failureCount: 0, successCount: 0, skippedCount: 0, totalCount: 0
-                    };
-                    // Aggregate the counts of all Functional test suites
-                    var aggregate = _.reduce(_.filter(testResult.testCapabilities, {type: "Functional"}), function (result, capability) {
-                        //New calculation: 3/10/16 - Topo Pal
-                        result.failureCount += capability.failedTestSuiteCount;
-                        result.successCount += capability.successTestSuiteCount;
-                        result.skippedCount += capability.skippedTestSuiteCount;
-                        result.totalCount += capability.totalTestSuiteCount;
-
-                        return result;
-                    }, allZeros);
-                    var passed = aggregate.successCount;
-                    var allPassed = aggregate.successCount === aggregate.totalCount;
-                    var success = allPassed ? 100 : ((passed / (aggregate.totalCount)) * 100);
-
-
-                    ctrl.executionId = _.isEmpty(response.result) ? "-" : response.result[index].executionId;
-                    ctrl.functionalTests.push({
-                        name: $scope.widgetConfig.options.testJobNames[index],
-                        totalCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.totalCount, 0),
-                        successCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.successCount, 0),
-                        failureCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.failureCount, 0),
-                        skippedCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.skippedCount, 0),
-                        successPercent: aggregate.totalCount === 0 ? '-' : $filter('number')(success, 0) + '%',
-                        details: testResult
-                    });
-                }
-                deferred.resolve(response.lastUpdated);
-                return deferred.promise;
-            }
-
-            function coveragePieChart(lineCoverage) {
-                lineCoverage.value = lineCoverage.value || 0;
-
-                ctrl.unitTestCoverageData = {
-                    series: [lineCoverage.value, (100 - lineCoverage.value)]
+                var testResult = _.isEmpty(response.result) ? { testCapabilities: [] } : response.result[index];
+                var allZeros = {
+                    failureCount: 0, successCount: 0, skippedCount: 0, totalCount: 0
                 };
-            }
+                // Aggregate the counts of all Functional test suites
+                var aggregate = _.reduce(_.filter(testResult.testCapabilities, { type: "Functional" }), function (result, capability) {
+                    //New calculation: 3/10/16 - Topo Pal
+                    result.failureCount += capability.failedTestSuiteCount;
+                    result.successCount += capability.successTestSuiteCount;
+                    result.skippedCount += capability.skippedTestSuiteCount;
+                    result.totalCount += capability.totalTestSuiteCount;
 
-            function getLibraryPolicyStatus(threats) {
-                var highest = 0; //ok
-                var highestCount = 0;
-                for (var i = 0; i < threats.length; ++i) {
-                    var level = threats[i].level;
-                    var count = threats[i].count;
-                    if ((level.toLowerCase() === 'critical') && (count > 0) && (highest < 4)) {
-                        highest = 4;
-                        highestCount = count;
-                    }
-                    if ((level.toLowerCase() === 'high') && (count > 0) && (highest < 3)) {
-                        highest = 3;
-                        highestCount = count;
-                    } else if ((level.toLowerCase() === 'medium') && (count > 0) && (highest < 2)) {
-                        highest = 2;
-                        highestCount = count;
-                    } else if ((level.toLowerCase() === 'low') && (count > 0) && (highest < 1)) {
-                        highest = 1;
-                        highestCount = count;
-                    }
-                }
-                return {level: highest, count: highestCount};
-            }
+                    return result;
+                }, allZeros);
+                var passed = aggregate.successCount;
+                var allPassed = aggregate.successCount === aggregate.totalCount;
+                var success = allPassed ? 100 : ((passed / (aggregate.totalCount)) * 100);
 
-            function getMetric(metrics, metricName, title) {
-                title = title || metricName;
-                return angular.extend((_.find(metrics, { name: metricName }) || { name: title }), { name: title });
-            }
 
-            function calculateTechnicalDebt(value) {
-                var factor, suffix;
-                if (!value) return '-';
-                if (value < 1440) {
-                    // hours
-                    factor = 60;
-                    suffix = 'h';
-                } else if (value < 525600) {
-                    // days
-                    factor = 1440;
-                    suffix = 'd';
-                } else {
-                    // years
-                    factor = 525600;
-                    suffix = 'y';
-                }
-                return Math.ceil(value / factor) + suffix;
-            }
-
-            function showStatusIcon(item) {
-                return item.status && item.status.toLowerCase() !== 'ok';
-            }
-
-            ctrl.getDashStatus = function getDashStatus() {
-
-                switch (ctrl.librarySecurityThreatStatus.level) {
-                    case 4:
-                        return 'critical';
-
-                    case 3:
-                        return 'alert';
-
-                    case 2:
-                        return 'warning';
-
-                    case 1:
-                        return 'ignore';
-
-                    default:
-                        return 'ok';
-                }
-            }
-
-            function showDetail(test) {
-                $uibModal.open({
-                    controller: 'TestDetailsController',
-                    controllerAs: 'testDetails',
-                    templateUrl: 'components/widgets/codeanalysis/testdetails.html',
-                    size: 'lg',
-                    resolve: {
-                        testResult: function () {
-                            return test;
-                        }
-                    }
+                ctrl.executionId = _.isEmpty(response.result) ? "-" : response.result[index].executionId;
+                ctrl.functionalTests.push({
+                    name: $scope.widgetConfig.options.testJobNames[index],
+                    totalCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.totalCount, 0),
+                    successCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.successCount, 0),
+                    failureCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.failureCount, 0),
+                    skippedCount: aggregate.totalCount === 0 ? '-' : $filter('number')(aggregate.skippedCount, 0),
+                    successPercent: aggregate.totalCount === 0 ? '-' : $filter('number')(success, 0) + '%',
+                    details: testResult
                 });
             }
+            deferred.resolve(response.lastUpdated);
+            return deferred.promise;
+        }
 
-            function showLibraryPolicyDetails(type,data) {
-                $uibModal.open({
-                    controller: 'LibraryPolicyDetailsController',
-                    controllerAs: 'libraryPolicyDetails',
-                    templateUrl: 'components/widgets/codeanalysis/librarypolicydetails.html',
-                    size: 'lg',
-                    resolve: {
-                        libraryPolicyResult: function () {
-                            return ({type: type,data: data});
-                        }
-                    }
-                });
+        function coveragePieChart(lineCoverage) {
+            lineCoverage.value = lineCoverage.value || 0;
+
+            ctrl.unitTestCoverageData = {
+                series: [lineCoverage.value, (100 - lineCoverage.value)]
+            };
+        }
+
+        function getLibraryPolicyStatus(threats) {
+            var highest = 0; //ok
+            var highestCount = 0;
+            for (var i = 0; i < threats.length; ++i) {
+                var level = threats[i].level;
+                var count = threats[i].count;
+                if ((level.toLowerCase() === 'critical') && (count > 0) && (highest < 4)) {
+                    highest = 4;
+                    highestCount = count;
+                }
+                if ((level.toLowerCase() === 'high') && (count > 0) && (highest < 3)) {
+                    highest = 3;
+                    highestCount = count;
+                } else if ((level.toLowerCase() === 'medium') && (count > 0) && (highest < 2)) {
+                    highest = 2;
+                    highestCount = count;
+                } else if ((level.toLowerCase() === 'low') && (count > 0) && (highest < 1)) {
+                    highest = 1;
+                    highestCount = count;
+                }
+            }
+            return { level: highest, count: highestCount };
+        }
+
+        function getMetric(metrics, metricName, title) {
+            title = title || metricName;
+            return angular.extend((_.find(metrics, { name: metricName }) || { name: title }), { name: title });
+        }
+
+        function calculateTechnicalDebt(value) {
+            var factor, suffix;
+            if (!value) return '-';
+            if (value < 1440) {
+                // hours
+                factor = 60;
+                suffix = 'h';
+            } else if (value < 525600) {
+                // days
+                factor = 1440;
+                suffix = 'd';
+            } else {
+                // years
+                factor = 525600;
+                suffix = 'y';
+            }
+            return Math.ceil(value / factor) + suffix;
+        }
+
+        function showStatusIcon(item) {
+            return item.status && item.status.toLowerCase() !== 'ok';
+        }
+
+        ctrl.getDashStatus = function getDashStatus() {
+
+            switch (ctrl.librarySecurityThreatStatus.level) {
+                case 4:
+                    return 'critical';
+
+                case 3:
+                    return 'alert';
+
+                case 2:
+                    return 'warning';
+
+                case 1:
+                    return 'ignore';
+
+                default:
+                    return 'ok';
             }
         }
-    })
-();
+
+        function showDetail(test) {
+            $uibModal.open({
+                controller: 'TestDetailsController',
+                controllerAs: 'testDetails',
+                templateUrl: 'components/widgets/codeanalysis/testdetails.html',
+                size: 'lg',
+                resolve: {
+                    testResult: function () {
+                        return test;
+                    }
+                }
+            });
+        }
+
+        function showLibraryPolicyDetails(type, data) {
+            $uibModal.open({
+                controller: 'LibraryPolicyDetailsController',
+                controllerAs: 'libraryPolicyDetails',
+                templateUrl: 'components/widgets/codeanalysis/librarypolicydetails.html',
+                size: 'lg',
+                resolve: {
+                    libraryPolicyResult: function () {
+                        return ({ type: type, data: data });
+                    }
+                }
+            });
+        }
+    }
+})
+    ();
