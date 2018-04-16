@@ -92,17 +92,27 @@
                 getMetric(caData.metrics, 'test_errors', 'Errors'),
                 getMetric(caData.metrics, 'tests', 'Tests')
             ];
-            ctrl.healthFactors = [
-                getMetric(caData.metrics, 'transfer', 'Transferability'),
-                getMetric(caData.metrics, 'change', 'Changeability'),
-                getMetric(caData.metrics, 'robustness', 'Robustness'),
-                getMetric(caData.metrics, 'efficiency', 'Efficiency'),
-                getMetric(caData.metrics, 'security', 'Security'),
-                getMetric(caData.metrics, 'risk', 'Risk Indicator'),
-                getMetric(caData.metrics, 'maintainability', 'Maintainability Indicator'),
-                getMetric(caData.metrics, 'tqi', 'Total Quality Indicator'),
-                getMetric(caData.metrics, 'critical', 'Critical Violations Count')
+             ctrl.healthFactors = [
+            //     getMetric(caData.metrics, 'transfer', 'Transferability'),
+            //     getMetric(caData.metrics, 'change', 'Changeability'),
+            //     getMetric(caData.metrics, 'robustness', 'Robustness'),
+            //     getMetric(caData.metrics, 'efficiency', 'Efficiency'),
+            //     getMetric(caData.metrics, 'security', 'Security'),
+					getMetric(caData.metrics, 'risk', 'Risk Index'),
+            //    getMetric(caData.metrics, 'maintainability', 'Maintainability Indicator'),
+            //     getMetric(caData.metrics, 'tqi', 'Total Quality Indicator'),
+            //    getMetric(caData.metrics, 'critical', 'Critical Violations Count')
+             ]
+
+            ctrl.cast = [
+				getMetric(caData.metrics, 'maintainability', 'Maintainability Index') 
+            //    risk: getMetric(caData.metrics, 'risk', 'Risk Indicator'),
+             //   maintain: getMetric(caData.metrics, 'maintainability', 'Maintainability Indicator'),
+            //    critical: getMetric(caData.metrics, 'critical', 'Critical Violations Count')
             ]
+
+            console.log("ctrl.cast: " + JSON.stringify(ctrl.cast));
+
 
             console.log("ctrl.healthFactors: " + JSON.stringify(ctrl.healthFactors));
 
