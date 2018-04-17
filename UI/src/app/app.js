@@ -32,25 +32,43 @@ var localStorageSupported = (function () {
 
     document.getElementsByTagName('head')[0].appendChild(link);
 
-    // create the angular app
-    angular.module(HygieiaConfig.module, [
-        'ngAnimate',
-        'ngSanitize',
-        'ui.router',
-        HygieiaConfig.module + '.core',
-        'ui.bootstrap',
-        'fitText',
-        'angular-chartist',
-        'gridstack-angular',
-        'ngCookies',
-        'validation.match',
-        'as.sortable',
-        'ui.select',
-        'angular-jwt',
-        'angularUtils.directives.dirPagination',
-        'ngRateIt'
-    ])
+    configGauge.$inject = ['ngGaugeProvider'];
+    function configGauge(ngGaugeProvider) {
 
+        // setting the default parameters for
+        // gauge instances globally.
+        ngGaugeProvider.setOptions({
+            size: 150,
+            cap: 'round',
+            thick: 15,
+            backgroundColor: "#e4e4e4",
+            min: 0,
+            max: 4,
+            type: "arch"
+        });
+    }
+
+
+    // create the angular app
+    angular
+        .module(HygieiaConfig.module, [
+            'ngAnimate',
+            'ngSanitize',
+            'ui.router',
+            HygieiaConfig.module + '.core',
+            'ui.bootstrap',
+            'fitText',
+            'angular-chartist',
+            'gridstack-angular',
+            'ngCookies',
+            'validation.match',
+            'as.sortable',
+            'ui.select',
+            'angular-jwt',
+            'angularUtils.directives.dirPagination',
+            'ngRateIt',
+            'angularjs-gauge'
+        ])
         .config(['$httpProvider', 'jwtOptionsProvider',
             // intercepting the http provider allows us to use relative routes
             // in data providers and then redirect them to a remote api if
@@ -96,9 +114,9 @@ var localStorageSupported = (function () {
                     controller: 'SiteController as ctrl',
                     templateUrl: 'app/dashboard/views/site.html',
                     resolve: {
-                    	user: function (Session) {
-                    		return Session.updateSession();
-                    	}
+                        user: function (Session) {
+                            return Session.updateSession();
+                        }
                     }
                 })
 
@@ -132,6 +150,7 @@ var localStorageSupported = (function () {
                 })
 
         })
+        .config(configGauge)
         .run(function ($rootScope, loginRedirectService) {
             $rootScope.$on('$locationChangeStart', function (event, nextPath, currentPath) {
                 loginRedirectService.saveCurrentPath(currentPath);
