@@ -103,7 +103,9 @@
             ctrl.cast = {
                 risk: getMetric(caData.metrics, 'risk', 'Risk Index'),
                 maintain: getMetric(caData.metrics, 'maintainability', 'Maintainability Index'),
-                critical: getMetric(caData.metrics, 'critical', 'Critical Violations Count')
+                critical_total: getMetric(caData.metrics, 'critical_total', 'Critical Violations Count'),
+                critical_added: getMetric(caData.metrics, 'critical_added', 'Added '),
+                critical_removed: getMetric(caData.metrics, 'critical_removed', 'Removed')
             }
 
             ctrl.lineCoverage = getMetric(caData.metrics, 'line_coverage');

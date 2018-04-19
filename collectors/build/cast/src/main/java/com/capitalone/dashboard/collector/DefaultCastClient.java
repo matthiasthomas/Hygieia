@@ -50,7 +50,6 @@ public class DefaultCastClient implements CastClient {
 	private static final String ID_EFFICIENCY = "60014";
 	private static final String ID_SECURITY = "60016";
 	private static final String ID_TQI = "60017";
-	private static final String ID_CRITICAL = "67011";
 
 	@Autowired
 	public DefaultCastClient(Supplier<RestOperations> restOperationsSupplier, CastSettings settings) {
@@ -87,9 +86,10 @@ public class DefaultCastClient implements CastClient {
 	}
 
 	@Override
+	@SuppressWarnings("PMD")
 	public CodeQuality currentCodeQuality(CastProject project) {
-		String qualityIndicatorsUrl = "?quality-indicators=(" + ID_TRANSFERABILITY + "," + ID_CHANGEABILITY + ","
-				+ ID_ROBUSTNESS + "," + ID_EFFICIENCY + "," + ID_SECURITY + "," + ID_TQI + "," + ID_CRITICAL + ")";
+		String qualityIndicatorsUrl = "?select=(evolutionSummary)&quality-indicators=(" + ID_TRANSFERABILITY + ","
+				+ ID_CHANGEABILITY + "," + ID_ROBUSTNESS + "," + ID_EFFICIENCY + "," + ID_SECURITY + "," + ID_TQI + ")";
 		String url = project.getInstanceUrl() + URL_CAST_APPLICATION + "/" + project.getApplicationId() + "/results"
 				+ qualityIndicatorsUrl;
 		try {
@@ -108,7 +108,7 @@ public class DefaultCastClient implements CastClient {
 
 			// Init metrics
 
-			String[] metrics = { "transfer", "change", "robustness", "efficiency", "security", "tqi", "critical" };
+			String[] metrics = { "transfer", "change", "robustness", "efficiency", "security", "tqi" };
 
 			JSONArray applicationResults = (JSONArray) jsonObject.get("applicationResults");
 			CodeQualityMetric metric;
@@ -118,17 +118,18 @@ public class DefaultCastClient implements CastClient {
 			for (int i = 0; i < metrics.length && applicationResults.size() >= metrics.length; i++) {
 				metric = new CodeQualityMetric(metrics[i]);
 				resultJson = (JSONObject) applicationResults.get(i);
-				String value = "";
-				// Health factors display a "grade" key
+				String value;
 				if (((JSONObject) resultJson.get("result")).get("grade") != null) {
 					value = ((JSONObject) resultJson.get("result")).get("grade").toString();
-				// Critical violations display a "value" key
-				} else if (((JSONObject) resultJson.get("result")).get("value") != null) {
-					value = ((JSONObject) resultJson.get("result")).get("value").toString();
+				} else {
+					value = "";
 				}
+				LOG.info(value);
 				metric.setValue(value);
 				codeQuality.getMetrics().add(metric);
 
+				// Make the risk and maintainabilty calculation
+				// Retrieve the added and removed critical violations from tqi
 				switch (metrics[i]) {
 				case "transfer":
 					metricMaintainabilityValue += Double.parseDouble(metric.getValue().toString());
@@ -144,6 +145,27 @@ public class DefaultCastClient implements CastClient {
 					break;
 				case "security":
 					metricRiskValue += Double.parseDouble(metric.getValue().toString());
+					break;
+				case "tqi":
+					// Create the critical violations total, added and removed metrics
+					CodeQualityMetric metricAddedCritical = new CodeQualityMetric("critical_added");
+					CodeQualityMetric metricRemovedCritical = new CodeQualityMetric("critical_removed");
+					CodeQualityMetric metricTotalCritical = new CodeQualityMetric("critical_total");
+
+					String addedCritical = ((JSONObject) ((JSONObject) resultJson.get("result"))
+							.get("evolutionSummary")).get("addedCriticalViolations").toString();
+					String removedCritical = ((JSONObject) ((JSONObject) resultJson.get("result"))
+							.get("evolutionSummary")).get("removedCriticalViolations").toString();
+					String totalCritical = ((JSONObject) ((JSONObject) resultJson.get("result"))
+							.get("evolutionSummary")).get("totalCriticalViolations").toString();
+
+					metricAddedCritical.setValue(addedCritical);
+					metricRemovedCritical.setValue(removedCritical);
+					metricTotalCritical.setValue(totalCritical);
+
+					codeQuality.getMetrics().add(metricAddedCritical);
+					codeQuality.getMetrics().add(metricRemovedCritical);
+					codeQuality.getMetrics().add(metricTotalCritical);
 					break;
 				default:
 					break;

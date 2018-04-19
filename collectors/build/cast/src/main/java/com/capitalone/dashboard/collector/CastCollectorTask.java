@@ -108,8 +108,6 @@ public class CastCollectorTask extends CollectorTask<CastCollector> {
 
 				// List<CastProject> eenabledProjects = enabledProjects(collector, instanceUrl);
 
-				// LOG.info("SIIIIIIIIIZZZZZZZZZZZZZZE: " + eenabledProjects.size());
-
 				refreshData(projects, castClient);
 
 				log("Finished", start);
@@ -134,7 +132,6 @@ public class CastCollectorTask extends CollectorTask<CastCollector> {
 
 		for (CastProject project : castProjects) {
 			CodeQuality codeQuality = castClient.currentCodeQuality(project);
-			LOG.info(codeQuality);
 			if (codeQuality != null && isNewQualityData(project, codeQuality)) {
 				codeQuality.setCollectorItemId(project.getId());
 				codeQualityRepository.save(codeQuality);
