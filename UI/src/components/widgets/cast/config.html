@@ -1,0 +1,101 @@
+<widget-modal widget-modal-title="Configure Cast Widget">
+<div class="row">
+	<span class="configNav">
+		<ul class="nav nav-tabs custom-tabs">
+			<li ng-repeat="tab in castConfig.tabs"
+				ng-click="castConfig.tabToggleView($index)"
+				ng-class="tab.name == castConfig.tabView ? 'active' : 'inactive'">
+				<a data-toggle="tab">{{tab.name}}</a>
+			</li>
+		</ul>
+	</span>
+	<div class="container-fluid" ng-if="castConfig.tabView == 'Team'">
+		<form name="configForm"
+			ng-submit="castConfig.submit(castConfig.collectorItemId)"
+			novalidate="novalidate">
+
+			<form-group input="collectorItemId" class="text-center"
+				errors="{required:'Please select an application.'}"> <label
+				class="modal-label">Code Analysis: Cast</label> <input type="text"
+				name="collectorItemId" class="form-control"
+				placeholder="Select an Application"
+				ng-model="castConfig.collectorItemId"
+				uib-typeahead="item as item.description for item in getCodeQualityJobs($viewValue)"
+				typeahead-focus typeahead-template-url="CATemplate.html"
+				typeahead-min-length="0" typeahead-wait-ms="250" autocomplete="off"
+				typeahead-no-results="noResults" required>
+			<div class="form-control" ng-show="noResults">No Results Found
+			</div>
+			</form-group>
+
+			<div class="button-row row text-center">
+				<button type="submit" class="btn btn-primary btn-wide">Save</button>
+				<button type="button" class="btn btn-primary btn-wide"
+					ng-show="castConfig.isWidgetConfigured()"
+					ng-click="castConfig.clearWidget()">Clear</button>
+			</div>
+		</form>
+	</div>
+	<div class="container-fluid" ng-if="castConfig.tabView == 'Product'">
+		<form name="configForm"
+			ng-submit="castConfig.submitProduct(castConfig.addCollectorItemId)"
+			novalidate="novalidate">
+			<div class="row">
+				<label class="modal-label">Code Analysis: Cast</label>
+			</div>
+			<div class="row">
+				<form-group input="addCollectorItemId" class="text-center"
+					errors="{required:'Please select a code analysis job.'}">
+
+				<div class="col-md-10">
+					<input type="text" name="addCollectorItemId" class="form-control"
+						placeholder="Select a cast analysis job"
+						ng-model="castConfig.addCollectorItemId"
+						uib-typeahead="item as item.description for item in getCodeQualityJobs($viewValue)"
+						typeahead-focus typeahead-template-url="CATemplate.html"
+						typeahead-min-length="0" typeahead-wait-ms="250"
+						autocomplete="off" typeahead-no-results="noResults" required>
+
+					<div class="form-control" ng-show="noResults">No Results
+						Found</div>
+				</div>
+				<div class="col-md-2">
+					<span class="btn glyphicon glyphicon-plus"
+						ng-click="castConfig.submitAdd(castConfig.addCollectorItemId)"></span>
+				</div>
+
+				</form-group>
+			</div>
+
+			<div class="row">
+				<table class="table table-responsive">
+					<thead>
+						<tr>
+							<th>Application</th>
+							<th>Remove</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in castConfig.itemList">
+							<td>{{item.description}}</td>
+							<td><span class="btn glyphicon glyphicon-remove"
+								ng-click="castConfig.submitRemoveItem(item)"> </span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="button-row row text-center">
+				<button type="submit" class="btn btn-primary btn-wide">Save</button>
+				<button type="button" class="btn btn-primary btn-wide"
+					ng-show="castConfig.isWidgetConfigured()"
+					ng-click="castConfig.clearWidget()">Clear</button>
+			</div>
+		</form>
+	</div>
+</div>
+</widget-modal>
+<script type="text/ng-template" id="CATemplate.html">
+	<a title={{match.model.options.jobName}}>
+		<span ng-bind-html="match.label | uibTypeaheadHighlight:query"/> 
+	</a>
+</script>

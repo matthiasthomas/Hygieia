@@ -63,7 +63,7 @@ var browserSync = require('browser-sync'),
         module: 'hygieia-dashboard',
         local: null,
         api: null,
-        refresh: 60
+        refresh: 3600
     };
 
 // override config values
@@ -130,6 +130,7 @@ function server(ghostMode) {
       }
 
       browserSync.init({
+		  port:3002,
           server: {
               baseDir: hygieia.dist,
               startPath: '/',

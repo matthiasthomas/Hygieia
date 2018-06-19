@@ -20,6 +20,8 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.capitalone.dashboard.auth.AuthProperties;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
 import com.google.common.collect.Sets;
 
 @Component
@@ -65,6 +67,8 @@ public class TokenAuthenticationServiceImpl implements TokenAuthenticationServic
 			return authentication;
 			
 		} catch (ExpiredJwtException e) {
+			ApplicationDBLogger.log(HygieiaConstants.API, "LOGIN",
+					"Expired token: " + e, e);
 			return null;
 		}
 	}

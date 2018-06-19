@@ -1,20 +1,100 @@
 <!DOCTYPE html>
 <html class="no-js" ng-app="[config-module]">
 <head>
+    <title>DevOps Dashboard</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
-    <title>Hygieia Dashboard</title>
     <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script>
-        var HygieiaConfig = [config];
-    </script>
+    <!-- Load environment variables -->
+    <script src="app/env.js"></script>
+        
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-116158158-1"></script>
+	<script>
+	  var HygieiaConfig = [config];
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	</script>    
 </head>
-<body>
+<body class="ng-cloak">
+
+<div id="appload" class="m-app-loading" ng-animate-children>
+	<style type="text/css">
+		div.m-app-loading {
+			position: fixed ;
+		}
+
+		div.m-app-loading div.animated-container {
+			background-color: #f5f5f5 ;
+			bottom: 0px ;
+			left: 0px ;
+			opacity: 1.0 ;
+			position: fixed ;
+			right: 0px ;
+			top: 0px ;
+			z-index: 9999999 ;
+		}
+
+		/* Used to initialize the ng-leave animation state. */
+		div.m-app-loading div.animated-container.ng-leave {
+			opacity: 1.0 ;
+			transition: all linear 200ms ;
+				-webkit-transition: all linear 200ms ;
+		}
+
+		/* Used to set the end properties of the ng-leave animation state. */
+		div.m-app-loading div.animated-container.ng-leave-active {
+			opacity: 0 ;
+		}
+
+		div.m-app-loading div.messaging {
+			font-family: monospace ;
+			left: 0px ;
+			margin-top: -37px ;
+			position: absolute ;
+			right: 0px ;
+			text-align: center ;
+			top: 50% ;
+		}
+		
+		.loader {
+		  position: absolute;
+		  left: 50%;
+		  top: 50%;
+		  z-index: 1;
+		  width: 150px;
+		  height: 150px;
+		  margin: -75px 0 0 -75px;
+		  border: 16px solid #e6e6e6;
+		  border-radius: 50%;
+		  border-top: 16px solid #152131;
+		  width: 120px;
+		  height: 120px;
+		  -webkit-animation: spin 2s linear infinite;
+		  animation: spin 2s linear infinite;
+		}
+		
+		@-webkit-keyframes spin {
+		  0% { -webkit-transform: rotate(0deg); }
+		  100% { -webkit-transform: rotate(360deg); }
+		}
+		
+		@keyframes spin {
+		  0% { transform: rotate(0deg); }
+		  100% { transform: rotate(360deg); }
+		}		
+	</style>
+	<div class="animated-container">
+		<div class="messaging">
+			<div class="loader"></div>
+		</div>
+	</div>
+</div>
 
 <div id="container" class="screen-fade" ui-view></div>
-
-
 
 <!-- bower:js -->
 <!-- endinject -->
@@ -24,5 +104,8 @@
 <!-- endinject -->
 
 <script src="template-cache.js"></script>
+<!-- JIRA Issue Collector Script Start -->
+<script type="text/javascript" src="https://sonypictures.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/-p6r7zz/b/5/a44af77267a987a660377e5c46e0fb64/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=289dfdf6"></script>
+<!-- JIRA Issue Collector Script End -->
 </body>
 </html>

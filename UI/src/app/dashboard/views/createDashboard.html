@@ -45,8 +45,8 @@
                 ng-pattern="/^[a-zA-Z0-9 ]*$/"/>
 
         </form-group>
-
-        <form-group input="applicationName" errors="{required: 'Application name is required', maxlength: 'Max length of 50 characters'}">
+        <form-group input="applicationName" errors="{required: 'Application name is required', maxlength: 'Max length of 50 characters'}"
+            ng-hide="ctrl.dashboardType.id == 'aggregate'">
             <input
                 type="text"
                 name="applicationName"
@@ -75,6 +75,7 @@
                               typeahead-focus
                               typeahead-min-length="0"
                               typeahead-editable="false"
+                              typeahead-on-select="ctrl.setConfigItemAppId(ctrl.configurationItemBusServ.id)"
                               typeahead-no-results="noResults" />
 
                       <div class="form-control" ng-show="noResults">
@@ -100,6 +101,7 @@
                             typeahead-focus
                             typeahead-min-length="0"
                             typeahead-editable="false"
+                            typeahead-on-select="ctrl.setConfigItemComponentId(ctrl.configurationItemBusApp.id)"
                             typeahead-no-results="noResults" />
                     <div class="form-control" ng-show="noResults">
                         No Results Found
@@ -107,10 +109,6 @@
                 </div>
             </div>
         </form-group>
-
-        <div class="form-group" ng-if="ctrl.dashboardType.id == 'team'">
-            <score-settings ng-model="ctrl.scoreSettings"></score-settings>
-        </div>
 
         <div class="button-row row text-center">
             <button type="submit" class="btn btn-primary btn-wide">Create</button>

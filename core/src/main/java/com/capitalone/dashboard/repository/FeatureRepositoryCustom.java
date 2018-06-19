@@ -20,7 +20,7 @@ public interface FeatureRepositoryCustom {
      * @param minimal
      * @return
      */
-    List<Feature> findByActiveEndingSprints(String sTeamId, String sProjectId, ObjectId collectorId, String currentISODateTime, boolean minimal);
+    List<Feature> findByActiveEndingSprints(String sTeamId, String sProjectId, ObjectId collectorId, String currentISODateTime, boolean minimal,String featureTool);
 
     /**
      * Find all features that have sprints set but without an end date (or an end date >= 9999-12-31 EOD)
@@ -41,5 +41,11 @@ public interface FeatureRepositoryCustom {
      * @return
      */
     List<Feature> findByNullSprints(String sTeamId, String sProjectId, ObjectId collectorId, boolean minimal);
+
+	int deleteByCollector(ObjectId collectorId);
+
+	List<Feature> searchFeatures(String sTeamId, String sProjectId,
+			ObjectId collectorId, String currentISODateTime, boolean minimal,
+			String featureTool, boolean filterByActive);
     
 }

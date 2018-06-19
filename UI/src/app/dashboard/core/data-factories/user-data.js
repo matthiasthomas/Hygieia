@@ -10,6 +10,20 @@
         var adminRoute = '/api/admin';
         var userRoute = '/api/users';
 
+        //To get all users based on pagination parameters
+        var userSearchWithPaginationRoute ="/api/users/search/";
+
+        //To create a user
+        var createUserRoute = "/api/admin/users/createUser";
+
+        //To update a user
+        var updateUserRoute = "/api/admin/users/updateUser";
+
+        //To delete an existing user
+        var deleteUserRoute = "/api/admin/users/deleteUser";
+
+
+
         return {
             getAllUsers: getAllUsers,
             promoteUserToAdmin: promoteUserToAdmin,
@@ -17,7 +31,11 @@
             createToken: createToken,
             apitokens: apitokens,
             deleteToken: deleteToken,
-            updateToken: updateToken
+            updateToken: updateToken,
+            searchWithPagination: searchWithPagination,
+            createUser: createUser,
+            updateUser: updateUser,
+            deleteUser: deleteUser
         };
 
 
@@ -72,6 +90,28 @@
     function updateToken(apiToken, id) {
         var route = adminRoute + "/updateToken";
         return $http.post(route + '/' + id, apiToken);
+    }
+    
+    function searchWithPagination(page, pagesize, username) {
+    	if(!username) {
+    		username = "";
+    	}
+    	//To get all users based on pagination parameter
+        // /api/users/search/{page}/{pagesize}/
+        //To get users based on searched username and pagination parameter
+        // /api/users/search/{page}/{pagesize}/{username}
+        var route = userSearchWithPaginationRoute + page + "/" + pagesize + "/" + username;
+        return $http.get(route);
+    }
+    
+    function createUser(userInfo) {
+    	return $http.put(createUserRoute, userInfo);
+    }
+    function updateUser(userInfo) {
+    	return $http.put(updateUserRoute, userInfo);
+    }
+    function deleteUser(userId) {
+    	return $http.delete(deleteUserRoute + "/" + userId);
     }
   }
 })();

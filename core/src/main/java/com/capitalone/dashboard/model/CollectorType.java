@@ -10,6 +10,8 @@ public enum CollectorType {
     Artifact,
     Deployment,
     AgileTool,
+    CAST,
+    ProductCAST,
     @Deprecated
     Feature,
     @Deprecated
@@ -23,10 +25,25 @@ public enum CollectorType {
     ChatOps,
     Cloud,
     Product,
+    ProductBuild,
+    ProductCodeQuality,
+    ProductSCM,
+    Aggregate,
+	//customcollector
+	Monitor,
     AppPerformance,
     InfraPerformance,
-    Score;
-
+    ServiceNow,
+    ProductServiceNow,
+    FunctionalResults,
+    Sonar,
+    ProductSonar,
+    ProductFunctionalResults,
+    IntegrationResults,
+    ProductIntegrationResults,
+    UnitTestResults,
+    ProductUnitTestResults;
+    
     public static CollectorType fromString(String value) {
         for (CollectorType collectorType : values()) {
             if (collectorType.toString().equalsIgnoreCase(value)) {

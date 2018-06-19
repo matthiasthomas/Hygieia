@@ -114,6 +114,7 @@ public class Feature extends BaseModel {
 	private String sProjectBeginDate;
 	private String sProjectName;
 	private String sProjectID;
+	private String sSource;
 
 	public ObjectId getCollectorId() {
         return collectorId;
@@ -523,6 +524,14 @@ public class Feature extends BaseModel {
 		return this.sOwnersIsDeleted;
 	}
 	
+	public String getsSource() {
+		return sSource;
+	}
+
+	public void setsSource(String sSource) {
+		this.sSource = sSource;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -532,11 +541,11 @@ public class Feature extends BaseModel {
 
 		Feature that = (Feature) o;
 		EqualsBuilder builder = new EqualsBuilder();
-		return builder.append(collectorId, that.collectorId).append(sId, that.sId).build();
+		return builder.append(collectorId, that.collectorId).append(sSource, that.sSource).append(sId, that.sId).build();
 	}
 
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(17, 37).append(collectorId).append(sId).toHashCode();
+		return new HashCodeBuilder(17, 37).append(collectorId).append(sSource).append(sId).toHashCode();
 	}
 }

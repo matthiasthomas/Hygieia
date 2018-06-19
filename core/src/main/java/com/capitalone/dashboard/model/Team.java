@@ -1,5 +1,6 @@
 package com.capitalone.dashboard.model;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -20,6 +21,7 @@ public class Team extends BaseModel {
     private String isDeleted;
     private boolean enabled;
     private String teamType;
+    private String source;
 
     @Transient
     private Collector collector;
@@ -100,8 +102,16 @@ public class Team extends BaseModel {
     public void setTeamType(String teamType) {
         this.teamType = teamType;
     }
+    
+    public String getSource() {
+		return source;
+	}
 
-    /* (non-Javadoc)
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	/* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -124,12 +134,7 @@ public class Team extends BaseModel {
         if (getClass() != obj.getClass())
             return false;
         Team other = (Team) obj;
-        if (teamId == null) {
-            if (other.teamId != null)
-                return false;
-        } else if (!teamId.equals(other.teamId))
-            return false;
-        return true;
+        return new EqualsBuilder().append(teamId, other.teamId).append(source, other.source).build();
     }
 
     /* (non-Javadoc)

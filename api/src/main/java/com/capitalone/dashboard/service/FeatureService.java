@@ -1,13 +1,16 @@
 package com.capitalone.dashboard.service;
 
-import com.capitalone.dashboard.model.Feature;
-import com.capitalone.dashboard.model.SprintEstimate;
-import com.capitalone.dashboard.model.DataResponse;
-
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
+
+import com.capitalone.dashboard.model.DataResponse;
+import com.capitalone.dashboard.model.Feature;
+import com.capitalone.dashboard.model.ProjectBoard;
+import com.capitalone.dashboard.model.SprintEstimate;
+import com.capitalone.dashboard.model.VelocityData;
 
 public interface FeatureService {
 
@@ -161,4 +164,9 @@ public interface FeatureService {
 	 */
 	DataResponse<List<Feature>> getCurrentSprintDetail(ObjectId componentId,
 			String teamId, String projectId, Optional<String> agileType);
+
+	DataResponse<Map<String, VelocityData>> getBoardVelocityDetail(String projectId);
+	
+	DataResponse<ProjectBoard> getProjectBoardVelocityDetail(String projectId, String boardId);
+
 }

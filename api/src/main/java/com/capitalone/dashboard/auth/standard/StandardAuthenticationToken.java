@@ -9,6 +9,7 @@ public class StandardAuthenticationToken extends AbstractAuthenticationToken {
 
 	private static final long serialVersionUID = 7187799207155545385L;
 	
+	@SuppressWarnings({"CPD-START"})
 	private final Object principal;
 	private Object credentials;
 
@@ -46,6 +47,7 @@ public class StandardAuthenticationToken extends AbstractAuthenticationToken {
 		super.setAuthenticated(false);
 	}
 
+	@SuppressWarnings({"CPD-END"})
 	@Override
 	public void eraseCredentials() {
 		super.eraseCredentials();

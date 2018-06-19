@@ -24,6 +24,10 @@ public class BuildDataCreateRequest {
     private String jobUrl;
     @NotNull
     private String instanceUrl;
+    
+    private String deploymentFrequency;
+    private String deploymentSuccessRate;
+    private String deploymentSpeed;
 
     private String niceName;
 
@@ -146,4 +150,28 @@ public class BuildDataCreateRequest {
     public List<RepoBranch> getCodeRepos() {
         return codeRepos;
     }
+
+	public String getDeploymentFrequency() {
+		return deploymentFrequency;
+	}
+
+	public void setDeploymentFrequency(String deploymentFrequency) {
+		this.deploymentFrequency = deploymentFrequency;
+	}
+
+	public String getDeploymentSuccessRate() {
+		return deploymentSuccessRate;
+	}
+
+	public void setDeploymentSuccessRate(String deploymentSuccessRate) {
+		this.deploymentSuccessRate = deploymentSuccessRate;
+	}
+
+	public String getDeploymentSpeed() {
+		return deploymentSpeed;
+	}
+
+	public void setDeploymentSpeed(String deploymentSpeed) {
+		this.deploymentSpeed = deploymentSpeed;
+	}
 }

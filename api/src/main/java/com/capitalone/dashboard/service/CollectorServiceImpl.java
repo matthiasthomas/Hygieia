@@ -1,12 +1,26 @@
 package com.capitalone.dashboard.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
 import com.capitalone.dashboard.misc.HygieiaException;
 import com.capitalone.dashboard.model.Collector;
 import com.capitalone.dashboard.model.CollectorItem;
 import com.capitalone.dashboard.model.CollectorType;
 import com.capitalone.dashboard.model.Component;
 import com.capitalone.dashboard.model.Dashboard;
-import com.capitalone.dashboard.model.MultiSearchFilter;
 import com.capitalone.dashboard.repository.CollectorItemRepository;
 import com.capitalone.dashboard.repository.CollectorRepository;
 import com.capitalone.dashboard.repository.ComponentRepository;
@@ -15,230 +29,329 @@ import com.capitalone.dashboard.repository.DashboardRepository;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class CollectorServiceImpl implements CollectorService {
 
-    private final CollectorRepository collectorRepository;
-    private final CollectorItemRepository collectorItemRepository;
-    private final ComponentRepository componentRepository;
-    private final DashboardRepository dashboardRepository;
-    private final CustomRepositoryQuery customRepositoryQuery;
+	private final CollectorRepository collectorRepository;
+	private final CollectorItemRepository collectorItemRepository;
+	private final ComponentRepository componentRepository;
+	private final DashboardRepository dashboardRepository;
+	private final CustomRepositoryQuery customRepositoryQuery;
 
-    @Autowired
-    public CollectorServiceImpl(CollectorRepository collectorRepository,
-                                CollectorItemRepository collectorItemRepository,
-                                ComponentRepository componentRepository, DashboardRepository dashboardRepository, CustomRepositoryQuery customRepositoryQuery) {
-        this.collectorRepository = collectorRepository;
-        this.collectorItemRepository = collectorItemRepository;
-        this.componentRepository = componentRepository;
-        this.dashboardRepository = dashboardRepository;
-        this.customRepositoryQuery = customRepositoryQuery;
-    }
+	@Autowired
+	public CollectorServiceImpl(CollectorRepository collectorRepository,
+			CollectorItemRepository collectorItemRepository, ComponentRepository componentRepository,
+			DashboardRepository dashboardRepository, CustomRepositoryQuery customRepositoryQuery) {
+		this.collectorRepository = collectorRepository;
+		this.collectorItemRepository = collectorItemRepository;
+		this.componentRepository = componentRepository;
+		this.dashboardRepository = dashboardRepository;
+		this.customRepositoryQuery = customRepositoryQuery;
+	}
 
-    @Override
-    public List<Collector> collectorsByType(CollectorType collectorType) {
-        return collectorRepository.findByCollectorType(collectorType);
-    }
+	@Override
+	public List<Collector> collectorsByType(CollectorType collectorType) {
+		return collectorRepository.findByCollectorType(collectorType);
+	}
 
-    @Override
-    public Page<CollectorItem> collectorItemsByTypeWithFilter(CollectorType collectorType, String searchFilterValue, Pageable pageable) {
-        List<Collector> collectors = collectorRepository.findByCollectorType(collectorType);
-        List<ObjectId> collectorIds = Lists.newArrayList(Iterables.transform(collectors, new ToCollectorId()));
-        Page<CollectorItem> collectorItems;
-        MultiSearchFilter searchFilter = new MultiSearchFilter(searchFilterValue).invoke();
-        List<String> criteria = getSearchFields(collectors);
-        String defaultSearchField = getDefaultSearchField(criteria);
-        // multiple search criteria
-        if(!StringUtils.isEmpty(searchFilter.getAdvancedSearchKey()) && criteria.size()>1){
-            String advSearchField = getAdvSearchField(criteria);
-            collectorItems = collectorItemRepository.findByCollectorIdAndSearchFields(collectorIds,defaultSearchField,searchFilter.getSearchKey(),advSearchField,searchFilter.getAdvancedSearchKey(),pageable);
-        }else{
-            // single search criteria
-            collectorItems = collectorItemRepository.findByCollectorIdAndSearchField(collectorIds,defaultSearchField,searchFilterValue,pageable);
-        }
-        removeJobUrlAndInstanceUrl(collectorItems);
-        for (CollectorItem options : collectorItems) {
-            options.setCollector(collectorById(options.getCollectorId(), collectors));
-        }
+	@Override
+	public List<Collector> collectorsByTypeAndName(CollectorType collectorType, String name) {
+		return collectorRepository.findByCollectorTypeAndName(collectorType, name);
+	}
 
-        return collectorItems;
-    }
+	@Override
+	public List<CollectorItem> collectorItemsByType(CollectorType collectorType) {
+		List<Collector> collectors = collectorRepository.findByCollectorType(collectorType);
 
-    // method to remove jobUrl and instanceUrl from build collector items.
-    private Page<CollectorItem> removeJobUrlAndInstanceUrl(Page<CollectorItem> collectorItems) {
-        for (CollectorItem cItem : collectorItems) {
-            if(cItem.getOptions().containsKey("jobUrl")) cItem.getOptions().remove("jobUrl");
-            if(cItem.getOptions().containsKey("instanceUrl")) cItem.getOptions().remove("instanceUrl");
-        }
-        return collectorItems;
-    }
+		List<ObjectId> collectorIds = Lists.newArrayList(Iterables.transform(collectors, new ToCollectorId()));
 
-    /**
-     * We want to initialize the Quasi-product collector when the API starts up
-     * so that any existing Team dashboards will be added as CollectorItems.
-     * <p>
-     * TODO - Is this the best home for this method??
-     */
-    @PostConstruct
-    public void initProductCollectorOnStartup() {
-        Collector productCollector = collectorRepository.findByName("Product");
-        if (productCollector == null) {
-            productCollector = new Collector();
-            productCollector.setName("Product");
-            productCollector.setCollectorType(CollectorType.Product);
-            productCollector.setEnabled(true);
-            productCollector.setOnline(true);
-            collectorRepository.save(productCollector);
+		List<CollectorItem> collectorItems = collectorItemRepository.findByCollectorIdIn(collectorIds);
 
-            // Create collector items for existing team dashboards
-            for (Dashboard dashboard : dashboardRepository.findTeamDashboards()) {
-                CollectorItem item = new CollectorItem();
-                item.setCollectorId(productCollector.getId());
-                item.getOptions().put("dashboardId", dashboard.getId().toString());
-                item.setDescription(dashboard.getTitle());
-                collectorItemRepository.save(item);
-            }
-        }
-    }
+		for (CollectorItem options : collectorItems) {
+			options.setCollector(collectorById(options.getCollectorId(), collectors));
+		}
 
-    @Override
-    public CollectorItem getCollectorItem(ObjectId id) {
-        CollectorItem item = collectorItemRepository.findOne(id);
-        item.setCollector(collectorRepository.findOne(item.getCollectorId()));
-        return item;
-    }
+		return collectorItems;
+	}
 
-    @Override
-    public CollectorItem createCollectorItem(CollectorItem item) {
-        CollectorItem existing = collectorItemRepository.findByCollectorAndOptions(
-                item.getCollectorId(), item.getOptions());
-        if (existing != null) {
-            item.setId(existing.getId());
-        }
-        return collectorItemRepository.save(item);
-    }
+	@SuppressWarnings({"CPD-START"})
+	@Override
+	public Page<CollectorItem> collectorItemsByTypeWithFilter(CollectorType collectorType, String descriptionFilter,
+			Pageable pageable) {
+		List<Collector> collectors = collectorRepository.findByCollectorType(collectorType);
+		List<ObjectId> collectorIds = Lists.newArrayList(Iterables.transform(collectors, new ToCollectorId()));
+		Page<CollectorItem> collectorItems = null;
+		String niceName = "";
+		String jobName = "";
+		List<String> l = findJobNameAndNiceName(descriptionFilter);
+		if (!l.isEmpty()) {
+			niceName = l.get(0).trim();
+			if (l.size() > 1) {
+				jobName = findIndex(descriptionFilter);
+			}
+		}
+		if (!niceName.isEmpty() && collectorType == CollectorType.Build) {
+			collectorItems = collectorItemRepository
+					.findByCollectorIdInAndDescriptionContainingAndNiceNameContainingAllIgnoreCase(collectorIds,
+							jobName, niceName, pageable);
+		} else {
+			collectorItems = collectorItemRepository.findByCollectorIdInAndDescriptionContainingIgnoreCase(collectorIds,
+					descriptionFilter, pageable);
+		}
+		for (CollectorItem options : collectorItems) {
+			options.setCollector(collectorById(options.getCollectorId(), collectors));
+		}
 
-    // This is to handle scenarios where the option contains user credentials etc. We do not want to create a new collector item -
-    // just update the new credentials.
-    @Override
-    public CollectorItem createCollectorItemSelectOptions(CollectorItem item, Map<String, Object> allOptions, Map<String, Object> uniqueOptions) {
-        List<CollectorItem> existing = customRepositoryQuery.findCollectorItemsBySubsetOptions(
-                item.getCollectorId(), allOptions, uniqueOptions);
+		return collectorItems;
+	}
+	
+	@SuppressWarnings({"CPD-END"})
+	@Override
+	public Page<CollectorItem> collectorItemsByTypeAndNameWithFilter(CollectorType collectorType, String name, String descriptionFilter, Pageable pageable) {
+		List<Collector> collectors = collectorRepository.findByCollectorTypeAndName(collectorType, name);
+		List<ObjectId> collectorIds = Lists.newArrayList(Iterables.transform(collectors, new ToCollectorId()));
+		System.out.println(collectorIds.size());
+		Page<CollectorItem> collectorItems = null;
+		String niceName = "";
+		String jobName = "";
+		List<String> l = findJobNameAndNiceName(descriptionFilter);
+		if (!l.isEmpty()) {
+			niceName = l.get(0).trim();
+			if (l.size() > 1) {
+				jobName = findIndex(descriptionFilter);
+			}
+		}
+		if (!niceName.isEmpty() && collectorType == CollectorType.Build) {
+			collectorItems = collectorItemRepository
+					.findByCollectorIdInAndDescriptionContainingAndNiceNameContainingAllIgnoreCase(collectorIds,
+							jobName, niceName, pageable);
+		} else {
+			collectorItems = collectorItemRepository.findByCollectorIdInAndDescriptionContainingIgnoreCase(collectorIds,
+					descriptionFilter, pageable);
+		}
+		for (CollectorItem options : collectorItems) {
+			options.setCollector(collectorById(options.getCollectorId(), collectors));
+		}
 
-        if (!CollectionUtils.isEmpty(existing)) {
-            CollectorItem existingItem = existing.get(0);
-            existingItem.getOptions().clear();
-            existingItem.getOptions().putAll(item.getOptions());
-            return collectorItemRepository.save(existingItem);
-        }
-        return collectorItemRepository.save(item);
-    }
+		return collectorItems;
+	}
 
+	private List<String> findJobNameAndNiceName(String descriptionFilter) {
+		if (descriptionFilter.contains(":"))
+			return Stream.of(descriptionFilter.split(":")).collect(Collectors.toList());
+		return new ArrayList<>();
+	}
 
-    @Override
-    public CollectorItem createCollectorItemByNiceNameAndProjectId(CollectorItem item, String projectId) throws HygieiaException {
-        //Try to find a matching by collector ID and niceName.
-        CollectorItem existing = collectorItemRepository.findByCollectorIdNiceNameAndProjectId(item.getCollectorId(), item.getNiceName(), projectId);
+	private static String findIndex(String descriptionFilter) {
+		return descriptionFilter.substring(descriptionFilter.indexOf(":") + 1, descriptionFilter.length());
 
-        //if not found, call the method to look up by collector ID and options. NiceName would be saved too
-        if (existing == null) return createCollectorItem(item);
+	}
 
-        //Flow is here because there is only one collector item with the same collector id and niceName. So, update with
-        // the new info - keep the same collector item id. Save = Update or Insert.
-        item.setId(existing.getId());
+	/**
+	 * We want to initialize the Quasi-product collector when the API starts up
+	 * so that any existing Team dashboards will be added as CollectorItems.
+	 * <p>
+	 * TODO - Is this the best home for this method??
+	 */
+	@PostConstruct
+	public void initProductCollectorOnStartup() {
+		Collector productCollector = collectorRepository.findByName("Product");
+		if (productCollector == null) {
+			productCollector = new Collector();
+			productCollector.setName("Product");
+			productCollector.setCollectorType(CollectorType.Product);
+			productCollector.setEnabled(true);
+			productCollector.setOnline(true);
+			collectorRepository.save(productCollector);
 
-        return collectorItemRepository.save(item);
-    }
+			// Create collector items for existing team dashboards
+			for (Dashboard dashboard : dashboardRepository.findTeamDashboards()) {
+				CollectorItem item = new CollectorItem();
+				item.setCollectorId(productCollector.getId());
+				item.getOptions().put("dashboardId", dashboard.getId().toString());
+				item.setDescription(dashboard.getTitle());
+				collectorItemRepository.save(item);
+			}
+		}
+	}
 
-    @Override
-    public CollectorItem createCollectorItemByNiceNameAndJobName(CollectorItem item, String jobName) throws HygieiaException {
-        //Try to find a matching by collector ID and niceName.
-        CollectorItem existing = collectorItemRepository.findByCollectorIdNiceNameAndJobName(item.getCollectorId(), item.getNiceName(), jobName);
+	@Override
+	public CollectorItem getCollectorItem(ObjectId id) {
+		CollectorItem item = collectorItemRepository.findOne(id);
+		item.setCollector(collectorRepository.findOne(item.getCollectorId()));
+		return item;
+	}
 
-        //if not found, call the method to look up by collector ID and options. NiceName would be saved too
-        if (existing == null) return createCollectorItem(item);
+	@Override
+	public CollectorItem createCollectorItem(CollectorItem item) {
+		CollectorItem existing = collectorItemRepository.findByCollectorAndOptions(item.getCollectorId(),
+				item.getOptions());
+		if (existing != null) {
+			item.setId(existing.getId());
+		}
+		return collectorItemRepository.save(item);
+	}
 
-        //Flow is here because there is only one collector item with the same collector id and niceName. So, update with
-        // the new info - keep the same collector item id. Save = Update or Insert.
-        item.setId(existing.getId());
+	@Override
+	public CollectorItem getCollectorItemByOptions(CollectorItem item) {
+		CollectorItem existing = collectorItemRepository.findByCollectorAndOptions(item.getCollectorId(),
+				item.getOptions());
+		return existing;
+	}
 
-        return collectorItemRepository.save(item);
-    }
+	// This is to handle scenarios where the option contains user credentials
+	// etc. We do not want to create a new collector item -
+	// just update the new credentials.
+	@Override
+	public CollectorItem createCollectorItemSelectOptions(CollectorItem item, Map<String, Object> allOptions,
+			Map<String, Object> selectOptions) {
+		List<CollectorItem> existing = customRepositoryQuery.findCollectorItemsBySubsetOptions(item.getCollectorId(),
+				allOptions, selectOptions);
 
-    @Override
-    public Collector createCollector(Collector collector) {
-        Collector existing = collectorRepository.findByName(collector.getName());
-        if (existing != null) {
-            collector.setId(existing.getId());
-        }
-        return collectorRepository.save(collector);
-    }
+		if (!CollectionUtils.isEmpty(existing)) {
+			item.setId(existing.get(0).getId()); //
+		}
 
-    @Override
-    public List<CollectorItem> getCollectorItemForComponent(String id, String type) {
-        ObjectId oid = new ObjectId(id);
-        CollectorType ctype = CollectorType.fromString(type);
-        Component component = componentRepository.findOne(oid);
+		return collectorItemRepository.save(item);
+	}
 
-        List<CollectorItem> items = component.getCollectorItems(ctype);
+	@Override
+	public CollectorItem createCollectorItemByNiceNameAndProjectId(CollectorItem item, String projectId)
+			throws HygieiaException {
+		// Try to find a matching by collector ID and niceName.
+		CollectorItem existing = collectorItemRepository.findByCollectorIdNiceNameAndProjectId(item.getCollectorId(),
+				item.getNiceName(), projectId);
 
-        // the collector items from component are not updated for collector run. We need to
-        // get the 'live' collector items from the collectorItemRepository
-        List<ObjectId> ids = new ArrayList<>();
-        for (CollectorItem item : items) {
-            ids.add(item.getId());
-        }
-        return (List<CollectorItem>) collectorItemRepository.findAll(ids);
-    }
+		// if not found, call the method to look up by collector ID and options.
+		// NiceName would be saved too
+		if (existing == null)
+			return createCollectorItem(item);
 
-    private Collector collectorById(ObjectId collectorId, List<Collector> collectors) {
-        for (Collector collector : collectors) {
-            if (collector.getId().equals(collectorId)) {
-                return collector;
-            }
-        }
-        return null;
-    }
+		// Flow is here because there is only one collector item with the same
+		// collector id and niceName. So, update with
+		// the new info - keep the same collector item id. Save = Update or
+		// Insert.
+		item.setId(existing.getId());
 
-    private static class ToCollectorId implements Function<Collector, ObjectId> {
-        @Override
-        public ObjectId apply(Collector input) {
-            return input.getId();
-        }
-    }
+		return collectorItemRepository.save(item);
+	}
 
-    private String getAdvSearchField(List<String> searchList) {
-        return searchList!=null && searchList.size()>1?searchList.get(1):null;
-    }
+	@Override
+	public CollectorItem createCollectorItemByNiceNameAndJobName(CollectorItem item, String jobName)
+			throws HygieiaException {
+		// Try to find a matching by collector ID and niceName.
+		CollectorItem existing = collectorItemRepository.findByCollectorIdNiceNameAndJobName(item.getCollectorId(),
+				item.getNiceName(), jobName);
 
-    private String getDefaultSearchField(List<String> searchList) {
-        return searchList!=null?searchList.get(0):null;
-    }
+		// if not found, call the method to look up by collector ID and options.
+		// NiceName would be saved too
+		if (existing == null)
+			return createCollectorItem(item);
 
-    private List<String> getSearchFields(List<Collector> collectors){
-        List<List<String>> searchList  = Lists.newArrayList(Iterables.transform(collectors, new ToCollectorSearchFields()));
-        return (!searchList.isEmpty() && searchList.get(0)!=null)? searchList.stream().flatMap(List::stream).collect(Collectors.toList()): null;
-    }
+		// Flow is here because there is only one collector item with the same
+		// collector id and niceName. So, update with
+		// the new info - keep the same collector item id. Save = Update or
+		// Insert.
+		item.setId(existing.getId());
 
-    private static class ToCollectorSearchFields implements Function<Collector, List<String>> {
-        @Override
-        public List<String> apply(Collector input) {
-            return input.getSearchFields();
-        }
-    }
+		return collectorItemRepository.save(item);
+	}
+
+	@Override
+	public Collector createCollector(Collector collector) {
+		Collector existing = collectorRepository.findByName(collector.getName());
+		if (existing != null) {
+			collector.setId(existing.getId());
+		}
+		return collectorRepository.save(collector);
+	}
+
+	@Override
+	public List<CollectorItem> getCollectorItemForComponent(String id, String type) {
+		ObjectId oid = new ObjectId(id);
+		CollectorType ctype = CollectorType.fromString(type);
+		Component component = componentRepository.findOne(oid);
+
+		List<CollectorItem> items = component.getCollectorItems(ctype);
+
+		// the collector items from component are not updated for collector run.
+		// We need to
+		// get the 'live' collector items from the collectorItemRepository
+		List<ObjectId> ids = new ArrayList<>();
+		// Handling null for aggregate scenarios where it is not configured for
+		// a product type - ProductBuild
+		if (items != null) {
+			for (CollectorItem item : items) {
+				ids.add(item.getId());
+			}
+			return (List<CollectorItem>) collectorItemRepository.findAll(ids);
+		}
+		return null;
+	}
+	
+	@Override
+	public List<CollectorItem> getCollectorItemFromComponent(String id, String type) {
+		ObjectId oid = new ObjectId(id);
+		CollectorType ctype = CollectorType.fromString(type);
+		Component component = componentRepository.findOne(oid);
+
+		List<CollectorItem> items = component.getCollectorItems(ctype);
+
+		return items;
+	}
+
+	private Collector collectorById(ObjectId collectorId, List<Collector> collectors) {
+		for (Collector collector : collectors) {
+			if (collector.getId().equals(collectorId)) {
+				return collector;
+			}
+		}
+		return null;
+	}
+
+	private static class ToCollectorId implements Function<Collector, ObjectId> {
+		@Override
+		public ObjectId apply(Collector input) {
+			return input.getId();
+		}
+	}
+
+	@Override
+	public List<CollectorItem> collectorItemsClass(String collectorClass) {
+		return collectorItemRepository.findByCollectorClass(collectorClass);
+	}
+
+	@Override
+	public List<CollectorItem> collectorItemsClassAndAppName(String collectorClass, String appName) {
+		return collectorItemRepository.findByCollectorClassAndAppname(collectorClass, appName);
+	}
+
+	@Override
+	public List<CollectorItem> updateComponentCollectionItems(ObjectId componentIdObj, CollectorType type,
+			List<CollectorItem> collectionItems) {
+		Component component = componentRepository.findOne(componentIdObj);
+
+		if (collectionItems == null)
+			collectionItems = new ArrayList<CollectorItem>();
+
+		component.getCollectorItems().put(type, collectionItems);
+		component = componentRepository.save(component);
+
+		return component.getCollectorItems(type);
+	}
+
+	@Override
+	public List<CollectorItem> createUpdateComponentCollectionItems(ObjectId componentIdObj, CollectorType type,
+			List<CollectorItem> collectionItems) {
+		Component component = componentRepository.findOne(componentIdObj);
+
+		if (collectionItems == null)
+			collectionItems = new ArrayList<CollectorItem>();
+
+		component.getCollectorItems().put(type, collectionItems);
+		component = componentRepository.save(component);
+
+		return component.getCollectorItems(type);
+	}
 }

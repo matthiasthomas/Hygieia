@@ -1,12 +1,9 @@
 package com.capitalone.dashboard.repository;
 
-
 import com.capitalone.dashboard.model.Collector;
 import com.capitalone.dashboard.model.CollectorItem;
 import com.capitalone.dashboard.model.CollectorType;
-import com.capitalone.dashboard.util.GitHubParsedUrl;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -16,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @Component
 public class CustomRepositoryQueryImpl implements CustomRepositoryQuery {
@@ -31,12 +27,12 @@ public class CustomRepositoryQueryImpl implements CustomRepositoryQuery {
 
 
     @Override
-    public List<CollectorItem> findCollectorItemsBySubsetOptions(ObjectId id, Map<String, Object> allOptions, Map<String, Object> uniqueOptions) {
+    public List<CollectorItem> findCollectorItemsBySubsetOptions(ObjectId id, Map<String, Object> allOptions, Map<String, Object> selectOptions) {
         Criteria c = Criteria.where("collectorId").is(id);
-        uniqueOptions.values().removeIf(d-> d.equals(null) || ((d instanceof String) && StringUtils.isEmpty((String) d)));
+
         for (Map.Entry<String, Object> e : allOptions.entrySet()) {
-            if (uniqueOptions.containsKey(e.getKey())) {
-                c = getCriteria(uniqueOptions, c, e);
+            if (selectOptions.containsKey(e.getKey())) {
+                c = c.and("options." + e.getKey()).is(selectOptions.get(e.getKey()));
             } else {
                 switch (e.getValue().getClass().getSimpleName()) {
                     case "String":
@@ -68,7 +64,7 @@ public class CustomRepositoryQueryImpl implements CustomRepositoryQuery {
 
         List<CollectorItem> items =  template.find(new Query(c), CollectorItem.class);
         if (CollectionUtils.isEmpty(items)) {
-            items = findCollectorItemsBySubsetOptionsWithNullCheck(id, allOptions, uniqueOptions);
+            items = findCollectorItemsBySubsetOptionsWithNullCheck(id, allOptions, selectOptions);
         }
         return items;
     }
@@ -76,12 +72,12 @@ public class CustomRepositoryQueryImpl implements CustomRepositoryQuery {
     //Due toe limitation of the query class, we have to create a second query to see if optional fields are null. This still does not handle combination of
     // initialized and null fields. Still better.
     //TODO: This needs to be re-thought out.
-    private List<CollectorItem> findCollectorItemsBySubsetOptionsWithNullCheck(ObjectId id, Map<String, Object> allOptions, Map<String, Object> uniqueOptions) {
+    public List<CollectorItem> findCollectorItemsBySubsetOptionsWithNullCheck(ObjectId id, Map<String, Object> allOptions, Map<String, Object> selectOptions) {
         Criteria c = Criteria.where("collectorId").is(id);
-        uniqueOptions.values().removeIf(d-> d.equals(null) || ((d instanceof String) && StringUtils.isEmpty((String) d)));
+
         for (Map.Entry<String, Object> e : allOptions.entrySet()) {
-            if (uniqueOptions.containsKey(e.getKey())) {
-                c = getCriteria(uniqueOptions, c, e);
+            if (selectOptions.containsKey(e.getKey())) {
+                c = c.and("options." + e.getKey()).is(selectOptions.get(e.getKey()));
             } else {
                 switch (e.getValue().getClass().getSimpleName()) {
                     case "String":
@@ -142,27 +138,4 @@ public class CustomRepositoryQueryImpl implements CustomRepositoryQuery {
         Criteria c = Criteria.where("collectorItems." + collectorType + "._id").is(collectorItemId);
         return template.find(new Query(c), com.capitalone.dashboard.model.Component.class);
     }
-
-	private String getGitHubParsedString(Map<String, Object> options, Map.Entry<String, Object> e) {
-        String url = (String)options.get(e.getKey());
-        GitHubParsedUrl gitHubParsedUrl = new GitHubParsedUrl(url);
-        return gitHubParsedUrl.getUrl();
-    }
-
-    private Criteria getCriteria(Map<String, Object> options, Criteria c, Map.Entry<String, Object> e) {
-        Criteria criteria = c;
-        if("url".equalsIgnoreCase(e.getKey())){
-            String url = getGitHubParsedString(options, e);
-            criteria = criteria.and("options." + e.getKey()).regex(Pattern.compile(url,Pattern.CASE_INSENSITIVE));
-        }
-        else if("branch".equalsIgnoreCase(e.getKey())){
-            String branch = (String)options.get(e.getKey());
-            criteria = criteria.and("options." + e.getKey()).regex(Pattern.compile(branch,Pattern.CASE_INSENSITIVE));
-        }
-        else {
-            criteria = criteria.and("options." + e.getKey()).is(options.get(e.getKey()));
-        }
-        return criteria;
-    }
-
 }

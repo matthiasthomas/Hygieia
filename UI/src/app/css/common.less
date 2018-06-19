@@ -4,11 +4,11 @@
 @import 'mixins';
 @import '../chartist/chartist';
 @import '../gridstack/gridstack';
+@import '../../../bower_components/gridstack/dist/gridstack-extra.min.css';
 @import '../../../bower_components/bootstrap-sweetalert/lib/sweet-alert';
 @import 'commit-blocks';
 
 @import 'site';
-@import 'score';
 
 // TODO: remove
 #__bs_notify__ { display: none !important;}
@@ -303,33 +303,23 @@ body {
     margin-bottom: 50px;
 
     .dashboard-logo {
-        background: url(@dash-header-logo-url) center center no-repeat, url(../assets/img/cast-logo.jpg) 23px 23px no-repeat;
-        background-size: contain;
+        background: url(@dash-header-logo-url) no-repeat center center;
+        background-size: 100%;
         display: inline-block;
         position: absolute;
-        left: @dash-header-logo-left;
+        left: 5px;
         top: @dash-header-logo-top;
         width: @dash-header-logo-width;
         height: @dash-header-logo-height;
-
+        z-index: 1;
 
         &.dashboard-logo-inverse {
             background-image: url(@dash-header-logo-inverse-url);
         }
     }
-	.dashboard-logo-cast {
-        background: url(../assets/img/cast-logo.jpg) no-repeat center center;
-        background-size: contain;
-        display: inline-block;
-        position: absolute;
-        left: @dash-header-logo-left;
-        top: @dash-header-logo-top;
-        width: @dash-header-logo-width;
-        height: @dash-header-logo-height;
+    .dashboard-logo ~ div{
+        font-size: 16px;
     }
-	
-	
-
 
     // switch between pipeline view
     .pipeline-toggle {
@@ -353,10 +343,38 @@ body {
     text-align: center;
 }
 
+@media (min-width: 768px) {
+    #header {
+        color: @dash-header-text;
+        display: block !important;
+        background: @dash-header-bg;
+        font-size: @dash-header-font-size;
+        line-height: 48px;
+        text-align: center;
+        position: relative;
+        margin-bottom: 50px;
+
+        .dashboard-logo {
+            background: url(@dash-header-logo-url) no-repeat center center;
+            background-size: contain;
+            display: inline-block;
+            position: absolute;
+            left: @dash-header-logo-left;
+            top: @dash-header-logo-top;
+            width: @dash-header-logo-width;
+            height: @dash-header-logo-height;
+        }
+        
+        .dashboard-logo ~ div{
+            font-size: 100%;
+        }
+    }
+}
+
 // WIDGET
 // ========================================
 .widget {
-    padding: 2.5rem 3rem;
+    padding: 1.0rem 3rem;
     .border-radius(@dash-widget-border-radius);
 
     .widget {
@@ -391,7 +409,7 @@ body {
         color: @dash-widget-heading-text;
         letter-spacing: .1rem;
         padding-bottom: .5rem;
-        margin-bottom: 1.75rem;
+        margin-bottom: 1.0rem;
 
         .text-lg;
         .border-top-radius(@dash-widget-border-radius);
@@ -707,18 +725,6 @@ tr.dash-row > td {
         line-height: 1.75rem;
         .border-radius(50%);
     }
-
-    .dash-status-critical {
-        display: inline-block;
-        font-weight: bold;
-        width: 2rem;
-        height: 2rem;
-        background: black;
-        border: .2rem solid @dash-status-fail-border;
-        color: @dash-status-fail;
-        line-height: 1.75rem;
-        .border-radius(50%);
-    }
 }
 
 .dash-status-lg {
@@ -915,6 +921,36 @@ tr.dash-row > td {
     .navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
         background-color: rgba(0, 0, 0, 0.4);
     }
+}
+
+
+.configNav{
+	.nav-tabs>li.inactive {
+	    	 	margin-bottom: 0px; 
+	}
+	.custom-tabs>li>a {
+		cursor: pointer;
+	}
+	.custom-tabs>li.active>a
+	{
+		color : white;
+		font-weight: bold;
+		background-color:#000;
+	}
+	.custom-tabs>li.active>a:hover
+	{
+		color : white;
+		font-weight: bold;
+		background-color:#000;
+		border-bottom-color: #000;
+	}
+	.nav-tabs {
+		border-bottom: 1px solid #000;
+	}
+}
+
+.modal-xl {
+    width: 60%;
 }
 
 .cicd-gates {

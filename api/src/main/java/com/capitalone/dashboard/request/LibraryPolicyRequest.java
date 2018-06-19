@@ -12,6 +12,7 @@ public class LibraryPolicyRequest {
     private Long dateBegins;
     private Long dateEnds;
 
+    @SuppressWarnings({"CPD-START"})
     public ObjectId getComponentId() {
         return componentId;
     }
@@ -52,6 +53,7 @@ public class LibraryPolicyRequest {
         this.dateEnds = dateEnds;
     }
 
+    @SuppressWarnings({"CPD-END"})
     public boolean validDateRange() {
         return dateBegins != null || dateEnds != null;
     }

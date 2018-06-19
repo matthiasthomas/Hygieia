@@ -4,6 +4,7 @@ import com.capitalone.dashboard.misc.HygieiaException;
 import com.capitalone.dashboard.model.Collector;
 import com.capitalone.dashboard.model.CollectorItem;
 import com.capitalone.dashboard.model.CollectorType;
+import com.capitalone.dashboard.model.Commit;
 import com.capitalone.dashboard.model.Component;
 import com.capitalone.dashboard.model.DataResponse;
 import com.capitalone.dashboard.model.GitRequest;
@@ -13,7 +14,9 @@ import com.capitalone.dashboard.repository.ComponentRepository;
 import com.capitalone.dashboard.repository.GitRequestRepository;
 import com.capitalone.dashboard.request.GitRequestRequest;
 import com.mysema.query.BooleanBuilder;
+
 import org.apache.commons.lang.StringUtils;
+import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.json.simple.JSONObject;
@@ -51,14 +54,25 @@ public class GitRequestServiceImpl implements GitRequestService {
                                                      String type, String state) {
         QGitRequest gitRequest = new QGitRequest("search");
         BooleanBuilder builder = new BooleanBuilder();
-
+        
         Component component = componentRepository.findOne(request.getComponentId());
-        CollectorItem item = component.getCollectorItems().get(CollectorType.SCM).get(0);
+        
+		// START HYG-152 : Amended to find details based on branch selection, if
+		// available.
+		CollectorItem item = null;
+		if (request.getCollectorItemId() != null) {
+			item = component.getCollectorItemForTypeAndId(
+					CollectorType.SCM, request.getCollectorItemId());
+		} else {
+			item = component.getFirstCollectorItemForType(CollectorType.SCM);
+		}
+		// END HYG-152 : Amended to find details based on branch selection, if
+		// available.
 
-        if (item == null) {
-            Iterable<GitRequest> results = new ArrayList<>();
-            return new DataResponse<>(results, new Date().getTime());
-        }
+		if (item == null) {
+			Iterable<GitRequest> results = new ArrayList<>();
+			return new DataResponse<>(results, new Date().getTime());
+		}
 
         builder.and(gitRequest.collectorItemId.eq(item.getId()));
         if (request.getNumberOfDays() != null) {
@@ -147,6 +161,7 @@ public class GitRequestServiceImpl implements GitRequestService {
             collector.setName("GitHub");
         }
 
+        @SuppressWarnings({"CPD-START"})
         private void buildCollectorItem() {
             if (!StringUtils.isEmpty(branch)) {
                 collectorItem = new CollectorItem();
@@ -159,7 +174,6 @@ public class GitRequestServiceImpl implements GitRequestService {
             }
         }
 
-
         public CollectorItem getCollectorItem() {
             return collectorItem;
         }
@@ -168,6 +182,7 @@ public class GitRequestServiceImpl implements GitRequestService {
             return collector;
         }
 
+        @SuppressWarnings({"CPD-END"})
         public List<GitRequest> getGitRequests() {
             return gitRequests;
         }

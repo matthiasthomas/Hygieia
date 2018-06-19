@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<style type="text/css">
+<!--
+.rps_49ac body {
+	font-family: Calibri;
+	font-size: 14px;
+}
+
+.rps_49ac table {
+	width: 98%;
+	margin: 1% auto;
+	margin-top: 5px;
+}
+
+.rps_49ac th {
+	background-color: #afcfaf;
+	height: 20px;
+	vertical-align: middle;
+	border: 1px solid #d5d7d8;
+	padding: 0px 5px;
+}
+
+.rps_49ac td {
+	vertical-align: middle;
+	border: 1px solid #ccc;
+	padding: 2px 5px;
+	word-wrap: break-word;
+	font-size: 12px;
+}
+-->
+</style>
+</head>
+<body>
+	<div class="rps_49ac">
+		<span>DB cleanup completed with status : <span th:text="${STATUS}"></span></span> <br /> <br /> 
+		<span>Find below as the DB clean up done by DB collection :</span> <br /> <br /> <br />
+		<table>
+			<tbody>
+				<tr>
+					<th>Collector Name</th>
+					<th>Collection Name</th>
+					<th>No of Records before deletion</th>
+					<th>Records Deleted</th>
+				</tr>
+				<tr th:each="collection : ${COLLECTION_CLEANUP}">
+					<td th:text="${collection.collector}"></td>
+					<td th:text="${collection.name}"></td>
+					<td th:text="${collection.count_before_delete}"></td>
+					<td th:text="${collection.deleted_count}"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>

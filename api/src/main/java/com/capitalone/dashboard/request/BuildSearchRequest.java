@@ -7,9 +7,11 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class BuildSearchRequest {
     @NotNull
     private ObjectId componentId;
+    private ObjectId collectorItemId;
     private Integer numberOfDays;
     private Long startDateBegins;
     private Long startDateEnds;
@@ -28,7 +30,15 @@ public class BuildSearchRequest {
         this.componentId = componentId;
     }
 
-    public Integer getNumberOfDays() {
+    public ObjectId getCollectorItemId() {
+		return collectorItemId;
+	}
+
+	public void setCollectorItemId(ObjectId collectorItemId) {
+		this.collectorItemId = collectorItemId;
+	}
+
+	public Integer getNumberOfDays() {
         return numberOfDays;
     }
 
@@ -36,6 +46,7 @@ public class BuildSearchRequest {
         this.numberOfDays = numberOfDays;
     }
 
+    @SuppressWarnings({"CPD-START"})
     public Long getStartDateBegins() {
         return startDateBegins;
     }
@@ -84,6 +95,7 @@ public class BuildSearchRequest {
         this.durationLessThan = durationLessThan;
     }
 
+    @SuppressWarnings({"CPD-END"})
     public List<BuildStatus> getBuildStatuses() {
         return buildStatuses;
     }

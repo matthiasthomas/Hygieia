@@ -45,6 +45,7 @@ public class Scope extends BaseModel {
 	private String changeDate;
 	private String assetState;
 	private String isDeleted;
+	private String source;
 	
 	@Transient
     private Collector collector;
@@ -129,6 +130,14 @@ public class Scope extends BaseModel {
 		this.isDeleted = isDeleted;
 	}
 	
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -138,12 +147,12 @@ public class Scope extends BaseModel {
 
 		Scope that = (Scope) obj;
 		EqualsBuilder builder = new EqualsBuilder();
-		return builder.append(pId, that.pId).append(collectorId, that.collectorId).build();
+		return builder.append(pId, that.pId).append(source, that.source).append(collectorId, that.collectorId).build();
 	}
 
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(17, 37).append(pId).append(collectorId).toHashCode();
+		return new HashCodeBuilder(17, 37).append(pId).append(source).append(collectorId).toHashCode();
 	}
 
 }

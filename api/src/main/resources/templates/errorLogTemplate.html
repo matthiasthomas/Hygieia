@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<style type="text/css">
+<!--
+.rps_49ac body {
+	font-family: Calibri;
+	font-size: 14px;
+}
+
+.rps_49ac table {
+	width: 98%;
+	margin: 1% auto;
+	margin-top: 5px;
+}
+
+.rps_49ac th {
+	background-color: #afcfaf;
+	height: 20px;
+	vertical-align: middle;
+	border: 1px solid #d5d7d8;
+	padding: 0px 5px;
+}
+
+.rps_49ac td {
+	vertical-align: middle;
+	border: 1px solid #ccc;
+	padding: 2px 5px;
+	word-wrap: break-word;
+	font-size: 12px;
+}
+-->
+</style>
+</head>
+<body>
+	<div class="rps_49ac">
+		<span>The following errors were encountered in last 24 hours,
+			within the Hygieia application. (E-Mail body shows only upto 50 raws,look at attachment for more details)</span> <br /> <br /> <br />
+		<table>
+			<tbody>
+				<tr>
+					<th>Error Timestamp</th>
+					<th>Module</th>
+					<th>Functionality</th>
+					<th>Message</th>
+					<th>Exception</th>
+				</tr>
+				<tr th:each="errorLog : ${errorList}">
+					<td th:text="${errorLog.displayDate()}"></td>
+					<td th:text="${errorLog.module}"></td>
+					<td th:text="${errorLog.functionality}"></td>
+					<td th:text="${errorLog.message}"></td>
+					<td th:text="${errorLog.truncateException()}"></td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<br />
+		<span>Last 7 days stats:</span> <br /> <br /> 
+		
+		<table>
+			<tbody>
+				<tr>
+					<th>Date</th>
+					<th>Total</th>
+				</tr>
+				<tr th:each="moduleCount : ${moduleCountList}">
+					<td th:text="${moduleCount.createDate}"></td>
+					<td th:text="${moduleCount.total}"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>

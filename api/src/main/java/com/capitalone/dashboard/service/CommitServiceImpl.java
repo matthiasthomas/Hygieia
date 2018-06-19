@@ -13,7 +13,9 @@ import com.capitalone.dashboard.repository.CommitRepository;
 import com.capitalone.dashboard.repository.ComponentRepository;
 import com.capitalone.dashboard.request.CommitRequest;
 import com.mysema.query.BooleanBuilder;
+
 import org.apache.commons.lang.StringUtils;
+import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.json.simple.JSONArray;
@@ -54,15 +56,28 @@ public class CommitServiceImpl implements CommitService {
     public DataResponse<Iterable<Commit>> search(CommitRequest request) {
         QCommit commit = new QCommit("search");
         BooleanBuilder builder = new BooleanBuilder();
-
+        
         Component component = componentRepository.findOne(request.getComponentId());
-        CollectorItem item = component.getFirstCollectorItemForType(CollectorType.SCM);
-        if (item == null) {
+        
+		// START HYG-152 : Amended to find details based on branch selection, if
+		// available.
+		CollectorItem item = null;
+
+		if (request.getCollectorItemId() != null) {
+			item = component.getCollectorItemForTypeAndId(
+					CollectorType.SCM, request.getCollectorItemId());
+		} else {
+			item = component.getFirstCollectorItemForType(CollectorType.SCM);
+		}
+		// END HYG-152 : Amended to find details based on branch selection, if
+		// available.
+
+		if (item == null) {
             Iterable<Commit> results = new ArrayList<>();
             return new DataResponse<>(results, new Date().getTime());
         }
+        
         builder.and(commit.collectorItemId.eq(item.getId()));
-
         if (request.getNumberOfDays() != null) {
             long endTimeTarget = new LocalDate().minusDays(request.getNumberOfDays()).toDate().getTime();
             builder.and(commit.scmCommitTimestamp.goe(endTimeTarget));
@@ -174,6 +189,7 @@ public class CommitServiceImpl implements CommitService {
             collector.setUniqueFields(uniqueOptions);
         }
 
+        @SuppressWarnings({"CPD-START"})
         private void buildCollectorItem() {
             if (!StringUtils.isEmpty(branch)) {
                 collectorItem = new CollectorItem();
@@ -186,7 +202,7 @@ public class CommitServiceImpl implements CommitService {
             }
         }
 
-
+        
         public CollectorItem getCollectorItem() {
             return collectorItem;
         }
@@ -199,6 +215,7 @@ public class CommitServiceImpl implements CommitService {
             return commits;
         }
 
+        @SuppressWarnings({"CPD-END"})
         private void buildCommits() throws HygieiaException {
 
             JSONArray commitArray = (JSONArray) jsonObject.get("commits");

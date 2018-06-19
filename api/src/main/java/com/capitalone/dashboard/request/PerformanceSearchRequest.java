@@ -1,6 +1,7 @@
 package com.capitalone.dashboard.request;
 
 import com.capitalone.dashboard.model.PerformanceType;
+
 import org.bson.types.ObjectId;
 
 import javax.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ public class PerformanceSearchRequest {
     private Long dateEnds;
     private PerformanceType type;
 
+    @SuppressWarnings({"CPD-START"})
     public ObjectId getComponentId() {
         return componentId;
     }
@@ -62,6 +64,7 @@ public class PerformanceSearchRequest {
         this.type = type;
     }
 
+    @SuppressWarnings({"CPD-END"})
     public boolean validDateRange() {
         return dateBegins != null || dateEnds != null;
     }

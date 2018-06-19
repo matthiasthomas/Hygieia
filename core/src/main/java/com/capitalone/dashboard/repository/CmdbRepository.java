@@ -26,6 +26,4 @@ public interface CmdbRepository extends CrudRepository<Cmdb, ObjectId>  {
 
     Cmdb findByConfigurationItemAndItemType(String confiugrationItem, String itemType);
 
-    Iterable<Cmdb> findAllByValidConfigItem(boolean validFlag);
-
 }

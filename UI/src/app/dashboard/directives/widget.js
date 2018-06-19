@@ -25,8 +25,8 @@
         })
         .directive('widget', widgetDirective);
 
-    widgetDirective.$inject = ['$controller', '$http', '$templateCache', '$compile', 'widgetManager', '$uibModal', 'WidgetState', 'DisplayState', '$interval', 'dashboardData','userService', 'scoreDataService'];
-    function widgetDirective($controller, $http, $templateCache, $compile, widgetManager, $uibModal, WidgetState, DisplayState, $interval, dashboardData, userService, scoreDataService) {
+    widgetDirective.$inject = ['$controller', '$http', '$templateCache', '$compile', 'widgetManager', '$uibModal', 'WidgetState', 'DisplayState', '$interval', 'dashboardData','userService'];
+    function widgetDirective($controller, $http, $templateCache, $compile, widgetManager, $uibModal, WidgetState, DisplayState, $interval, dashboardData, userService) {
         return {
             templateUrl: 'app/dashboard/views/widget.html',
             require: '^widgetContainer',
@@ -48,6 +48,7 @@
             scope.widgetDefinition = widgetManager.getWidget(attrs.name);
             scope.title = attrs.title || scope.widgetDefinition.view.defaults.title;
             scope.header = attrs.header ? attrs.header != 'false' : true;
+
 
             // when the widget loads, register it with the container which will then call back to process
             // the widget with the proper config value if it's already been configured on the dashboard
@@ -111,7 +112,6 @@
             $scope.hasPermission = hasPermission;
             $scope.setState = setState;
             $scope.init = init;
-            $scope.getWidgetScore = getWidgetScore;
 
             // method implementations
             function configModal() {
@@ -142,43 +142,59 @@
 
             function upsertWidget(newWidgetConfig) {
                 if (newWidgetConfig) {
-                    // use existing values if they're not defined
-                    angular.extend($scope.widgetConfig, newWidgetConfig);
+                	
+                	if(newWidgetConfig.clear){             		
+                		dashboardData.clearWidget($scope.dashboard.id , $scope.widgetConfig.id , newWidgetConfig.collectorType)
+                		.then(function (response){
+                			delete newWidgetConfig.clear;                		
+                    		delete newWidgetConfig.collectorType;
 
-                    // support single value or array values for collectorItemId
-                    if ($scope.widgetConfig.collectorItemId) {
-                        $scope.widgetConfig.collectorItemIds = [$scope.widgetConfig.collectorItemId];
-                        delete $scope.widgetConfig.collectorItemId;
-                    }
-
-                    dashboardData
-                        .upsertWidget($scope.dashboard.id, $scope.widgetConfig)
-                        .then(function (response) {
-                            // response comes back with two properties, a widget and a component
-                            // we need to update the component on the dashboard so that when the
-                            // widget loads it will be able to get to the collector data. we
-                            // then need to update the widget configuration stored on the container
-
-                            // add or update the widget from the response.
-                            // required when a new widget id is created
-                            if(response.widget !== null && typeof response.widget === 'object') {
-                                angular.extend($scope.widgetConfig, response.widget);
-                            }
-
-                            // save the widget locally
-                            $scope.container.upsertWidget($scope.widgetConfig);
-                            $scope.container.upsertComponent(response.component);
-
+                    		$scope.widgetConfig = newWidgetConfig;
+                    		
+                    		$scope.container.upsertWidget($scope.widgetConfig);
+                    		if(response != '')
+                    			$scope.container.upsertComponent(response);
                             // TODO: should probably call back to the widget's getState method
-                            $scope.state = WidgetState.READY;
-
-                            init();
-                        });
+                            $scope.state = WidgetState.CONFIGURE;
+                    		init();
+                		});
+                	}
+                	else
+                	{
+	                    // use existing values if they're not defined
+	                    angular.extend($scope.widgetConfig, newWidgetConfig);
+	
+	                    // support single value or array values for collectorItemId
+	                    if ($scope.widgetConfig.collectorItemId) {
+	                        $scope.widgetConfig.collectorItemIds = [$scope.widgetConfig.collectorItemId];
+	                        delete $scope.widgetConfig.collectorItemId;
+	                    }
+	                	
+	                    dashboardData
+	                        .upsertWidget($scope.dashboard.id, $scope.widgetConfig)
+	                        .then(function (response) {
+	                            // response comes back with two properties, a widget and a component
+	                            // we need to update the component on the dashboard so that when the
+	                            // widget loads it will be able to get to the collector data. we
+	                            // then need to update the widget configuration stored on the container
+	
+	                            // add or update the widget from the response.
+	                            // required when a new widget id is created
+	                            if(response.widget !== null && typeof response.widget === 'object') {
+	                                angular.extend($scope.widgetConfig, response.widget);
+	                            }
+	
+	                            // save the widget locally
+	                            $scope.container.upsertWidget($scope.widgetConfig);
+	                            $scope.container.upsertComponent(response.component);
+	
+	                            // TODO: should probably call back to the widget's getState method
+	                            $scope.state = WidgetState.READY;
+	
+	                            init();
+	                        });
+                	}
                 }
-            }
-
-            function getWidgetScore() {
-                return scoreDataService.getScoreByDashboardWidget($scope.dashboard.id, $scope.widgetConfig.id);
             }
 
             // redraws the widget which forces it to go through the entire flow
@@ -246,19 +262,18 @@
                 var load = $scope.widgetViewController.load();
                 if (load && load.then) {
                     load.then(function(result) {
-                        var lastUpdated = angular.isArray(result) ? _.max(result) : result;
-                        var collectorItems = result.collectorItem;
-                        if(typeof lastUpdated === 'object'){
-                            lastUpdated = lastUpdated.collectorItem[0].lastUpdated;
-                        }
-                        $scope.lastUpdatedActual = lastUpdated;
                         $scope.lastUpdatedDisplay = moment(lastUpdated).dash('ago');
+                        var lastUpdated = angular.isArray(result) ? _.max(result) : result;
+                        // TODO need to un-comment once we fix elastic collector-items storage
+                        /*
+                        var collectorItems = result.collectorItem;
                         $scope.collectorItems = collectorItems;
                         if (collectorItems) {
                             for (var i = 0; (i < collectorItems.length) && !$scope.collectionError ; i++ ) {
                                 $scope.collectionError = collectorItems[i].errors.length > 0;
                             }
                         }
+                        */
                     });
                 }
             }

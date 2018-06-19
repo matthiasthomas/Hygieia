@@ -82,6 +82,53 @@
     <joda-time.version>2.7</joda-time.version>
     <joda-convert.version>1.8.1</joda-convert.version>
     <docker.useConfigFile>false</docker.useConfigFile>
+
+  	<file.api>api/api.properties</file.api>
+  	<file.api.prod>api/api-prod.properties</file.api.prod>
+
+  	<file.jenkins>collectors/build/jenkins/jenkins-build-collector.properties</file.jenkins>
+  	<file.jenkins.prod>collectors/build/jenkins/jenkins-build-collector-prod.properties</file.jenkins.prod>
+
+  	<file.jenkins.codequality>collectors/build/jenkins-codequality/jenkins-codequality.properties</file.jenkins.codequality>
+  	<file.jenkins.codequality.prod>collectors/build/jenkins-codequality/jenkins-codequality-prod.properties</file.jenkins.codequality.prod>
+
+  	<file.jenkins.cucumber>collectors/build/jenkins-cucumber/jenkins-cucumber-test-collector.properties</file.jenkins.cucumber>
+  	<file.jenkins.cucumber.prod>collectors/build/jenkins-cucumber/jenkins-cucumber-test-collector-prod.properties</file.jenkins.cucumber.prod>
+
+  	<file.jenkins.functionaltest>collectors/build/jenkins-functionaltest/jenkins-functionaltest.properties</file.jenkins.functionaltest>
+  	<file.jenkins.functionaltest.prod>collectors/build/jenkins-functionaltest/jenkins-functionaltest-prod.properties</file.jenkins.functionaltest.prod>
+
+  	<file.jenkins.sonar>collectors/build/sonar/sonar-codequality-collector.properties</file.jenkins.sonar>
+  	<file.jenkins.sonar.prod>collectors/build/sonar/sonar-codequality-collector-prod.properties</file.jenkins.sonar.prod>
+
+  	<file.feature.jira>collectors/feature/jira/jira-feature-collector.properties</file.feature.jira>
+  	<file.feature.jira.prod>collectors/feature/jira/jira-feature-collector-prod.properties</file.feature.jira.prod>
+
+  	<file.feature.pivotal>collectors/feature/pivotal/pivotal-feature-collector.properties</file.feature.pivotal>
+  	<file.feature.pivotal.prod>collectors/feature/pivotal/pivotal-feature-collector-prod.properties</file.feature.pivotal.prod>
+
+  	<file.monitor.elastic>collectors/monitor/elastic/elastic-monitor-collector.properties</file.monitor.elastic>
+  	<file.monitor.elastic.prod>collectors/monitor/elastic/elastic-monitor-collector-prod.properties</file.monitor.elastic.prod>
+
+  	<file.scm.github>collectors/scm/github/github-scm-collector.properties</file.scm.github>
+  	<file.scm.github.prod>collectors/scm/github/github-scm-collector-prod.properties</file.scm.github.prod>
+
+  	<file.servicenow>collectors/servicenow/servicenow-collector.properties</file.servicenow>
+  	<file.servicenow.prod>collectors/servicenow/servicenow-collector-prod.properties</file.servicenow.prod>
+
+  	<file.cast>collectors/cast/cast-collector.properties</file.cast>
+  	<file.cast.prod>collectors/cast/cast-collector-prod.properties</file.cast.prod>
+	
+	<file.jenkins.integrationtest>collectors/build/jenkins-integrationtest/jenkins-integrationtest.properties</file.jenkins.integrationtest>
+  	<file.jenkins.integrationtest.prod>collectors/build/jenkins-integrationtest/jenkins-integrationtest-prod.properties</file.jenkins.integrationtest.prod>
+
+	<file.jenkins.unittest>collectors/build/jenkins-unittest/jenkins-unittest.properties</file.jenkins.unittest>
+  	<file.jenkins.unittest.prod>collectors/build/jenkins-unittest/jenkins-unittest-prod.properties</file.jenkins.unittest.prod>
+
+  	<file.gta>UI/src/app/env.js</file.gta>
+  	<file.gta.dev>UI/src/app/env_dev.js</file.gta.dev>
+  	<file.gta.prod>UI/src/app/env_prod.js</file.gta.prod>
+
   </properties>
 
   <build>
@@ -120,9 +167,9 @@
           <execution>
             <phase>validate</phase>
             <goals>
-              <goal>check</goal>
+              <!-- goal>check</goal -->
               <!-- disabled for now: -->
-              <!--<goal>cpd-check</goal>-->
+              <!-- goal>cpd-check</goal-->
             </goals>
           </execution>
         </executions>
@@ -182,33 +229,39 @@
       <modules>
         <module>core</module>
         <module>api</module>
-        <module>api-audit</module>
-        <module>collectors/artifact/artifactory</module>
-        <module>collectors/build/bamboo</module>
-		<module>collectors/build/cast</module>
+        <module>collectors/cast</module>		
+        <module>UI</module>
+        <module>UI-tests</module>
+		<!-- 
         <module>collectors/build/jenkins</module>
         <module>collectors/build/jenkins-cucumber</module>
         <module>collectors/build/jenkins-codequality</module>
+        <module>collectors/build/jenkins-functionaltest</module>
+		<module>collectors/build/jenkins-integrationtest</module>
+		<module>collectors/build/jenkins-unittest</module>
         <module>collectors/build/sonar</module>
+        <module>collectors/feature/jira</module>
+		<module>collectors/feature/pivotal</module>
+        <module>collectors/scm/github</module>
+        <module>collectors/servicenow</module>
+        <module>collectors/monitor/elastic</module>
+        <module>hygieia-jenkins-plugin</module>
+        <module>collectors/performance/appdynamics</module>
+        <module>collectors/library-policy/nexus-iq-collector</module>
+        <module>api-audit</module>
+        <module>collectors/artifact/artifactory</module>
+        <module>collectors/build/bamboo</module>
         <module>collectors/cloud/aws</module>
         <module>collectors/deploy/udeploy</module>
         <module>collectors/deploy/xldeploy</module>
-        <module>collectors/feature/jira</module>
         <module>collectors/feature/versionone</module>
         <module>collectors/feature/gitlab</module>
         <module>collectors/misc/chat-ops</module>
-        <module>collectors/performance/appdynamics</module>
         <module>collectors/scm/bitbucket</module>
-        <module>collectors/scm/github</module>
-        <module>collectors/scm/github-graphql</module>
         <module>collectors/scm/subversion</module>
         <module>collectors/scm/gitlab</module>
         <module>collectors/cmdb/hpsm</module>
-        <module>collectors/library-policy/nexus-iq-collector</module>
-        <module>collectors/misc/score</module>
-        <module>hygieia-jenkins-plugin</module>
-        <module>UI</module>
-        <module>UI-tests</module>
+         -->
       </modules>
       <build>
         <pluginManagement>
@@ -227,38 +280,44 @@
       </build>
     </profile>
     <profile>
-      <id>release</id>
+      <id>dev</id>
       <modules>
         <module>core</module>
         <module>api</module>
-        <module>api-audit</module>
-        <module>collectors/artifact/artifactory</module>
-        <module>collectors/build/bamboo</module>
-		<module>collectors/build/cast</module>
         <module>collectors/build/jenkins</module>
         <module>collectors/build/jenkins-cucumber</module>
         <module>collectors/build/jenkins-codequality</module>
+        <module>collectors/build/jenkins-functionaltest</module>
+		<module>collectors/build/jenkins-integrationtest</module>
+		<module>collectors/build/jenkins-unittest</module>
         <module>collectors/build/sonar</module>
-        <module>collectors/cloud/aws</module>
-        <module>collectors/deploy/udeploy</module>
-        <module>collectors/deploy/xldeploy</module>
-        <module>collectors/feature/jira</module>
+        <module>collectors/scm/github</module>
+        <module>collectors/cmdb/hpsm</module>
+        <module>collectors/servicenow</module>
+        <module>collectors/cast</module>
+        <module>collectors/monitor/elastic</module>		
+        <module>collectors/feature/jira</module>		
+		<module>collectors/feature/pivotal</module>
+        <!-- 
+     	<module>UI</module>		
+        <module>UI-tests</module>		
+        <module>collectors/performance/appdynamics</module>
+        <module>hygieia-jenkins-plugin</module>
+        <module>collectors/scm/subversion</module>
+        <module>collectors/scm/gitlab</module>
+        <module>collectors/scm/bitbucket</module>
         <module>collectors/feature/versionone</module>
         <module>collectors/feature/gitlab</module>
         <module>collectors/misc/chat-ops</module>
-        <module>collectors/performance/appdynamics</module>
-        <module>collectors/scm/bitbucket</module>
-        <module>collectors/scm/github</module>
-        <module>collectors/scm/github-graphql</module>
-        <module>collectors/scm/subversion</module>
-        <module>collectors/scm/gitlab</module>
-        <module>collectors/cmdb/hpsm</module>
+        <module>collectors/cloud/aws</module>
+        <module>collectors/deploy/udeploy</module>
+        <module>collectors/deploy/xldeploy</module>
+        <module>api-audit</module>
+        <module>collectors/artifact/artifactory</module>
+        <module>collectors/build/bamboo</module>
         <module>collectors/library-policy/nexus-iq-collector</module>
-        <module>collectors/misc/score</module>
-        <module>hygieia-jenkins-plugin</module>
-     	<module>UI</module>
-        <module>UI-tests</module>
- </modules>
+         -->
+ 	</modules>
       <build>
         <plugins>
           <plugin>
@@ -283,6 +342,7 @@
               </execution>
             </executions>
           </plugin>
+          <!-- 
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -313,9 +373,250 @@
               </execution>
             </executions>
           </plugin>
+           -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>20020829</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+								<if>
+									<available file="${file.gta}"/>
+									<then>
+					                   <copy file="${file.gta.dev}" tofile="${file.gta}" overwrite="true"/>
+									</then>
+								</if>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>		   
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>prod</id>
+      <modules>
+        <module>core</module>
+        <module>api</module>
+        <module>collectors/build/jenkins</module>
+        <module>collectors/build/jenkins-cucumber</module>
+        <module>collectors/build/jenkins-codequality</module>
+        <module>collectors/build/jenkins-functionaltest</module>
+		<module>collectors/build/jenkins-integrationtest</module>
+		<module>collectors/build/jenkins-unittest</module>
+        <module>collectors/build/sonar</module>
+        <module>collectors/scm/github</module>
+        <module>collectors/servicenow</module>
+        <module>collectors/cast</module>
+        <module>collectors/monitor/elastic</module>		
+        <module>collectors/feature/jira</module>		
+		<module>collectors/feature/pivotal</module>
+        <!-- 
+     	<module>UI</module>		
+        <module>UI-tests</module>		
+        <module>collectors/cmdb/hpsm</module>
+        <module>collectors/performance/appdynamics</module>
+        <module>hygieia-jenkins-plugin</module>
+        <module>collectors/scm/subversion</module>
+        <module>collectors/scm/gitlab</module>
+        <module>collectors/scm/bitbucket</module>
+        <module>collectors/feature/versionone</module>
+        <module>collectors/feature/gitlab</module>
+        <module>collectors/misc/chat-ops</module>
+        <module>collectors/cloud/aws</module>
+        <module>collectors/deploy/udeploy</module>
+        <module>collectors/deploy/xldeploy</module>
+        <module>api-audit</module>
+        <module>collectors/artifact/artifactory</module>
+        <module>collectors/build/bamboo</module>
+        <module>collectors/library-policy/nexus-iq-collector</module>
+        -->
+ 	</modules>
+      <build>
+	    <plugins>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>20020829</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+								<if>
+									<available file="${file.api}"/>
+									<then>
+					                   <copy file="${file.api.prod}" tofile="${file.api}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.jenkins}"/>
+									<then>
+					                   <copy file="${file.jenkins.prod}" tofile="${file.jenkins}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.jenkins.codequality}"/>
+									<then>
+					                   <copy file="${file.jenkins.codequality.prod}" tofile="${file.jenkins.codequality}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.jenkins.cucumber}"/>
+									<then>
+					                   <copy file="${file.jenkins.cucumber.prod}" tofile="${file.jenkins.cucumber}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.jenkins.functionaltest}"/>
+									<then>
+					                   <copy file="${file.jenkins.functionaltest.prod}" tofile="${file.jenkins.functionaltest}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.jenkins.sonar}"/>
+									<then>
+					                   <copy file="${file.jenkins.sonar.prod}" tofile="${file.jenkins.sonar}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.feature.jira}"/>
+									<then>
+					                   <copy file="${file.feature.jira.prod}" tofile="${file.feature.jira}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.feature.pivotal}"/>
+									<then>
+					                   <copy file="${file.feature.pivotal.prod}" tofile="${file.feature.pivotal}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.monitor.elastic}"/>
+									<then>
+					                   <copy file="${file.monitor.elastic.prod}" tofile="${file.monitor.elastic}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.scm.github}"/>
+									<then>
+					                   <copy file="${file.scm.github.prod}" tofile="${file.scm.github}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.servicenow}"/>
+									<then>
+					                   <copy file="${file.servicenow.prod}" tofile="${file.servicenow}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.cast}"/>
+									<then>
+					                   <copy file="${file.cast.prod}" tofile="${file.cast}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.gta}"/>
+									<then>
+					                   <copy file="${file.gta.prod}" tofile="${file.gta}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.jenkins.integrationtest}"/>
+									<then>
+					                   <copy file="${file.jenkins.integrationtest.prod}" tofile="${file.jenkins.integrationtest}" overwrite="true"/>
+									</then>
+								</if>
+								<if>
+									<available file="${file.jenkins.unittest}"/>
+									<then>
+					                   <copy file="${file.jenkins.unittest.prod}" tofile="${file.jenkins.unittest}" overwrite="true"/>
+									</then>
+								</if>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.5.1</version>
+            <configuration>
+              <source>1.8</source>
+              <target>1.8</target>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- 
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <configuration>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+           -->
+        </plugins>
+      </build>
+    </profile>    
   </profiles>
 
 </project>

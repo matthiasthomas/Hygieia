@@ -24,6 +24,10 @@
           return loginData.login(credentials.username, credentials.password).then(processResponse)
         }
 
+        this.loginIDM = function () {
+           return loginData.loginIDM().then(processResponse)
+        }
+
         this.loginLdap = function (credentials) {
           return loginData.loginLdap(credentials.username, credentials.password).then(processResponse)
         }

@@ -1,0 +1,80 @@
+<widget-modal id="create-user-details" class=""
+	widget-modal-title="{{ctrl.widgetTitle}}">
+
+<form name="ctrl.cuf" class="form">
+		 <form-group input="firstName" errors="{ createError: 'Error creating user. Try again later.'}">
+            <input
+                type="text"
+                name="firstName"
+                class="form-control"
+                placeholder="First Name"
+                ng-model="ctrl.userInfo.firstName"
+                autocomplete="off"
+                />
+        </form-group>
+        
+        <form-group input="lastName" >
+            <input
+                type="text"
+                name="lastName"
+                class="form-control"
+                placeholder="Last Name"
+                ng-model="ctrl.userInfo.lastName"
+                autocomplete="off"
+                />
+        </form-group>
+        
+        <form-group input="middleName">
+            <input
+                type="text"
+                name="middleName"
+                class="form-control"
+                placeholder="Middle Name"
+                ng-model="ctrl.userInfo.middleName"
+                autocomplete="off"
+                />
+        </form-group>
+        
+         <form-group input="emailAddress" errors="{email: 'Inavalid email address found. Please enter valid email address.'}">
+            <input
+                type="email"
+                name="emailAddress"
+                class="form-control"
+                placeholder="Email Address"
+                ng-model="ctrl.userInfo.emailAddress"
+                autocomplete="off"
+                />
+
+        </form-group>
+        
+        <form-group input="username" errors="{required: 'User Name is required'}">
+            <input
+                type="text"
+                name="username"
+                class="form-control"
+                placeholder="User Name"
+                ng-model="ctrl.userInfo.username"
+                required
+                autocomplete="off"
+                ng-disabled="ctrl.isEditMode"
+                />
+        </form-group>
+        
+        <form-group input="role"  errors="{required: 'Please select a role'}">
+            <select name="role"
+                    class="form-control"
+                    ng-model="ctrl.role"
+                    ng-options="role.name for role in ctrl.ROLE_TYPES track by role.type"
+                    ng-change="ctrl.setUserRole()"
+                    required>
+                <option value="" disabled>Select a Role</option>
+            </select>
+        </form-group>
+        
+        <div class="button-row row text-center">
+            <button type="button" class="btn btn-primary btn-wide" ng-if="!ctrl.isEditMode" ng-click="ctrl.createUser()">Create User</button>
+            <button type="button" class="btn btn-primary btn-wide" ng-if="ctrl.isEditMode" ng-click="ctrl.updateUser()">Update User</button>
+        </div>
+
+</form>
+</widget-modal>

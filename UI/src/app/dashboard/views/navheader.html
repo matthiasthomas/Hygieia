@@ -2,13 +2,13 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container-fluid">
 
-            <a ng-href="#/" class="dashboard-logo dashboard-logo-inverse "></a>
+            <a ng-href="#/" class="dashboard-logo dashboard-logo-inverse"></a>
 
             <div ng-show="ctrl.showAuthentication">
                 <div class="pull-right">
 
                     <span class="welcome-header">
-                    Welcome  {{ ctrl.username  | uppercase}}
+                       <span class="hidden-xxs">Welcome  {{ ctrl.username  | uppercase}}</span>
 
                        <span class="fa-stack fa-lg" ng-show="ctrl.myadmin" ng-click="ctrl.admin()">
                            <i class="fa fa-circle fa-stack-2x"></i>

@@ -14,6 +14,7 @@ public class CodeQualityRequest {
     private Long dateEnds;
     private CodeQualityType type;
 
+    @SuppressWarnings({"CPD-START"})
     public ObjectId getComponentId() {
         return componentId;
     }
@@ -62,6 +63,7 @@ public class CodeQualityRequest {
         this.type = type;
     }
 
+    @SuppressWarnings({"CPD-END"})
     public boolean validDateRange() {
         return dateBegins != null || dateEnds != null;
     }

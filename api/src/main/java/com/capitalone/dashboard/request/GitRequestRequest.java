@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 public class GitRequestRequest {
     @NotNull
     private ObjectId componentId;
+    private ObjectId collectorItemId;
     private Integer numberOfDays;
 
     public ObjectId getComponentId() {
@@ -15,9 +16,17 @@ public class GitRequestRequest {
 
     public void setComponentId(ObjectId componentId) {
         this.componentId = componentId;
-    }
+    }    
 
-    public Integer getNumberOfDays() {
+	public ObjectId getCollectorItemId() {
+		return collectorItemId;
+	}
+
+	public void setCollectorItemId(ObjectId collectorItemId) {
+		this.collectorItemId = collectorItemId;
+	}
+
+	public Integer getNumberOfDays() {
         return numberOfDays;
     }
 

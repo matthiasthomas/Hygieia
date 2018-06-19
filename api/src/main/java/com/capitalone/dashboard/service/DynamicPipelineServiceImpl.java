@@ -142,6 +142,7 @@ public class DynamicPipelineServiceImpl implements PipelineService {
     }
     
     // Creates the response that is returned to the client
+    @SuppressWarnings({"CPD-START"})
     private PipelineResponse buildPipelineResponse(Pipeline pipeline, Long lowerBound, Long upperBound){
         /**
          * get the collector item and dashboard
@@ -202,6 +203,7 @@ public class DynamicPipelineServiceImpl implements PipelineService {
      * @param upperBound	the upper window bound for gathering statistics
      * @return				the <b>pipeline</b> passed in
      */
+    @SuppressWarnings({"CPD-END"})
     protected Pipeline buildPipeline(Pipeline pipeline, Long lowerBound, Long upperBound) {
         CollectorItem dashboardCollectorItem = collectorItemRepository.findOne(pipeline.getCollectorItemId());
         Dashboard dashboard = dashboardRepository.findOne(new ObjectId((String)dashboardCollectorItem.getOptions().get("dashboardId")));
@@ -854,6 +856,7 @@ public class DynamicPipelineServiceImpl implements PipelineService {
 		}
 	}
 	
+	@SuppressWarnings({"CPD-START"})
 	private Long getMinStart() {
         Calendar cal = new GregorianCalendar();
         cal.setTime(new Date());
@@ -909,6 +912,7 @@ public class DynamicPipelineServiceImpl implements PipelineService {
         }
         return commitMap;
     }
+    
 
     /**
      * get the commits for a given stage by finding which commits havent passed to a later stage
@@ -917,6 +921,7 @@ public class DynamicPipelineServiceImpl implements PipelineService {
      * @param stage current stage
      * @return a list of all commits as pipeline response commits that havent moved past the current stage
      */
+    @SuppressWarnings({"CPD-END"})
     public List<PipelineResponseCommit> findNotPropagatedCommits(Dashboard dashboard, Pipeline pipeline, PipelineStage stage,List<PipelineStage> pipelineStageList){
 
         Map<String, PipelineCommit> startingStage = findCommitsForStage(dashboard, pipeline, stage);

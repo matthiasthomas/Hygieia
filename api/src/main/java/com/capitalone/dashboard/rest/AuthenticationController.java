@@ -26,6 +26,8 @@ import com.capitalone.dashboard.auth.AuthenticationResponseService;
 import com.capitalone.dashboard.model.AuthType;
 import com.capitalone.dashboard.request.AuthenticationRequest;
 import com.capitalone.dashboard.service.AuthenticationService;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
 
 
 @RestController
@@ -51,6 +53,9 @@ public class AuthenticationController {
 		    	authenticationResponseService.handle(httpServletResponse, authentication);
 		    	return ResponseEntity.ok().build();
 	    	} catch (DuplicateKeyException dke) {
+			ApplicationDBLogger.log(HygieiaConstants.API,
+					"AuthenticationController.registerUser", dke.getMessage(),
+					dke);
 	    		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
 	    	}
     }

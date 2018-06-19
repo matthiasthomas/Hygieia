@@ -12,12 +12,37 @@
         var login = this;
         login.templateUrl = 'app/dashboard/views/navheader.html';
         login.invalidUsernamePassword = false;
+		var protocol = location.protocol;
+		var host = location.host;
+		var isIE = false || !!document.documentMode;
+		var isEdge = !isIE && !!window.StyleMedia;
 
+		authService.getAuthenticationProviders().then(function(response) {
+			if (response.data[0] == "IDM") {
+				return authService.loginIDM();
+			} else {
+				$scope.authenticationProviders = response.data;
+				$scope.activeTab = response.data[0];
+			}
+		}).then(function(response2) {
+			if(response2 != null && response2 != undefined) {
+				if (response2.status == 200) {
+					if (isIE || isEdge) {
+						window.location = protocol + "//" + host + "/dashboard";
+					} else {
+						location.reload(true);
+					}
+				} else if (response2.status == 500) {
+					alert("API is not responding...");
+				} else if (response2.status == 401) {
+					authService.logout();
+					location.reload(true);
+				} else {
+					alert("Error occured");
+				}
+			}
+		});
 
-        authService.getAuthenticationProviders().then(function(response) {
-          $scope.authenticationProviders = response.data;
-          $scope.activeTab = response.data[0];
-        });
 
         $scope.isStandardLogin = function () {
           return $scope.activeTab === "STANDARD";

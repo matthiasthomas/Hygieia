@@ -5,8 +5,12 @@ package com.capitalone.dashboard.model;
  */
 public enum CodeQualityType {
     StaticAnalysis(CollectorType.CodeQuality),
-    SecurityAnalysis(CollectorType.StaticSecurityScan);
-
+    SecurityAnalysis(CollectorType.StaticSecurityScan),
+    Sonar(CollectorType.Sonar),
+    CAST(CollectorType.CAST),
+    FunctionalResults(CollectorType.FunctionalResults),
+    IntegrationResults(CollectorType.IntegrationResults);
+    
     private final CollectorType collectorType;
     CodeQualityType(CollectorType collectorType) {
         this.collectorType = collectorType;

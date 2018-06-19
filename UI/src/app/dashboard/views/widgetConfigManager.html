@@ -7,17 +7,17 @@
 </style>
 <widget-modal widget-modal-title="Widget Management">
     <form name ="widgetForm">
-        <div class="wrapper">
+    	<p class="text-danger">{{ctrl.dupErroMessage}}</p>		
+        <div class="wrapper">        	
             <div class="sidebar">
                 <ul>
                     <li ng-repeat="(title, widget) in ctrl.widgets"  ng-if="title!='product' && title!='monitor2'"><a id="{{title}}-button" ng-click="ctrl.toggleWidget(title, $event)">
-                        {{title}}</a></li>
+                        {{ widget.view.defaults.title ? widget.view.defaults.title : title}}</a></li>
                 </ul>
-                <br>
-
+                <br>				
             </div>
             <div class="gui-view">
-                <br>
+                <br>                
                 <div class="row">
                     <div class="col-md-12">
                         <div gridstack class="grid-stack" options="options" on-change="ctrl.onChange(event,items)" on-drag-start="ctrl.onDragStart(event,ui)" on-drag-stop="ctrl.onDragStop(event,ui)" on-resize-start="ctrl.onResizeStart(event,ui)" on-resize-stop="ctrl.onResizeStop(event,ui)">
@@ -27,7 +27,7 @@
                                     <div class="widget-body-config">
                                         <div>
                                             <div class="fa fa-cog fa-lg"></div>
-                                            <div>{{title}}</div>
+                                            <div>{{ ctrl.widgets[title].view.defaults.title ? ctrl.widgets[title].view.defaults.title : title}}</div>
                                         </div>
                                     </div>
                                 </div>

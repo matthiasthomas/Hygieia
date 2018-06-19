@@ -42,11 +42,14 @@ public interface FeatureRepository extends CrudRepository<Feature, ObjectId>,
 	 *         existing collection
 	 */
 	@Query
-	List<Feature> findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-			ObjectId collectorId, String changeDate);
+	List<Feature> findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+			ObjectId collectorId, String source,String changeDate);
 
 	@Query(value = "{'sId' : ?0}", fields = "{'sId' : 1}")
 	List<Feature> getFeatureIdById(String sId);
+	
+	@Query(value = "{'sId' : ?0 , 'collectorId' : ?1 , 'sSource' : ?2 }", fields = "{'sId' : 1}")
+	List<Feature> getFeatureIdByIdCollectorIdAndSource(String sId,ObjectId collectorId , String source);
 
 	@Query(value = " {'sNumber' : ?0 }")
 	List<Feature> getStoryByNumber(String sNumber);

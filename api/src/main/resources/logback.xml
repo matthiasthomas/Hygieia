@@ -15,7 +15,7 @@
         <!-- or whenever the file size reaches 100MB -->
         <maxFileSize>20MB</maxFileSize>
       </timeBasedFileNamingAndTriggeringPolicy>
-      <maxHistory>30</maxHistory>
+      <maxHistory>2</maxHistory>
     </rollingPolicy>
     <encoder>
        <pattern>%d %-5level %logger{36} - %msg%n</pattern>

@@ -47,4 +47,7 @@ public interface ScopeService {
 	 */
 	Page<Scope> getScopeByCollectorWithFilter(ObjectId collectorId, String projectName, Pageable pageable);
 
+	Page<Scope> getScopeByCollectorWithFilter(ObjectId collectorId,
+			String source, String projectName, Pageable pageable);
+
 }

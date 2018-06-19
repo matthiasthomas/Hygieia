@@ -14,6 +14,7 @@ import com.capitalone.dashboard.repository.DashboardRepository;
 import com.capitalone.dashboard.repository.PipelineRepository;
 import com.capitalone.dashboard.request.PipelineSearchRequest;
 import com.capitalone.dashboard.util.PipelineUtils;
+
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -67,6 +68,7 @@ public class PipelineServiceImpl implements PipelineService {
         return pipeline;
     }
 
+    @SuppressWarnings({"CPD-START"})
     private PipelineResponse buildPipelineResponse(Pipeline pipeline, Long beginDate, Long endDate){
         Long lowerBound = beginDate;
         if(beginDate == null){
@@ -106,13 +108,15 @@ public class PipelineServiceImpl implements PipelineService {
                          * remove prod commits outside of filter date range
                          */
                         Iterator<PipelineResponseCommit> commitIterator = commitsForStage.iterator();
+                        if (stage.equals(pipelineResponse.getProdStage())) {
                             while (commitIterator.hasNext()) {
                                 PipelineResponseCommit commit = commitIterator.next();
                                 if (!isBetween(commit.getProcessedTimestamps().get(stage.getName()), lowerBound, upperBound)) {
                                     commitIterator.remove();
                                 }
                             }
-                      }
+                        }
+                    }
                 }
             }
         pipelineResponse.setUnmappedStages(findUnmappedStages(dashboard,pipelineStageList)
@@ -126,6 +130,7 @@ public class PipelineServiceImpl implements PipelineService {
      * @param dashboard
      * @return a list of deploy PipelineStages that are not mapped
      */
+    @SuppressWarnings({"CPD-END"})
     private List<PipelineStage> findUnmappedStages(Dashboard dashboard,List<PipelineStage> pipelineStageList){
         List<PipelineStage> unmappedStages = new ArrayList<>();
 
@@ -183,6 +188,7 @@ public class PipelineServiceImpl implements PipelineService {
                 .collect(Collectors.toList());
     }
 
+    @SuppressWarnings({"CPD-START"})
     private boolean isBetween(Long commitTimestamp, Long lowerBound, Long upperBound){
         return (lowerBound <= commitTimestamp && commitTimestamp <= upperBound);
     }
@@ -218,6 +224,7 @@ public class PipelineServiceImpl implements PipelineService {
      * @param stage
      * @return
      */
+    @SuppressWarnings({"CPD-END"})
     private Map<String, PipelineCommit> findCommitsForStage(Dashboard dashboard, Pipeline pipeline, PipelineStage stage) {
         Map<String, PipelineCommit> commitMap = new HashMap<>();
 

@@ -46,6 +46,8 @@ import org.springframework.http.HttpMethod;
 import com.capitalone.dashboard.ApiSettings;
 import com.capitalone.dashboard.model.RequestLog;
 import com.capitalone.dashboard.repository.RequestLogRepository;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
 import com.mongodb.util.JSON;
 
 //import org.springframework.util.MimeType;
@@ -101,6 +103,13 @@ public class LoggingFilter implements Filter {
                 }
             } catch (MimeTypeParseException e) {
                 LOGGER.error("Invalid MIME Type detected. Request MIME type=" + httpServletRequest.getContentType() + ". Response MIME Type=" + bufferedResponse.getContentType());
+				ApplicationDBLogger.log(
+						HygieiaConstants.API,
+						"LOGIN",
+						"Invalid MIME Type detected. Request MIME type="
+								+ httpServletRequest.getContentType()
+								+ ". Response MIME Type="
+								+ bufferedResponse.getContentType(), e);
             }
             requestLog.setResponseSize(bufferedResponse.getContent().length());
 
@@ -110,6 +119,8 @@ public class LoggingFilter implements Filter {
                 requestLogRepository.save(requestLog);
             } catch (RuntimeException re) {
                 LOGGER.info(requestLog.toString());
+    			ApplicationDBLogger.log(HygieiaConstants.API, "LOGIN",
+    					"Request log exception: " + re, re);
             }
 
         } else {

@@ -219,7 +219,7 @@ public class FeatureServiceImplTest {
 	public void testGetFeatureEstimates_ManySameSuperFeatures_OneSuperFeatureRs() {
 		when(componentRepository.findOne(mockComponentId)).thenReturn(mockComponent);
 		when(collectorRepository.findOne(mockItem2.getCollectorId())).thenReturn(mockJiraCollector);
-		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean()))
+		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean(),Mockito.anyString()))
 		        .thenReturn(Arrays.asList(mockJiraFeature, mockJiraFeature2));
 
 		DataResponse<List<Feature>> result = featureService.getFeatureEpicEstimates(mockComponentId,
@@ -229,14 +229,14 @@ public class FeatureServiceImplTest {
 				result.getResult(), hasSize(1));
 		assertThat(
 				"The total super feature estimate should be the sum total of any similar super features present in the response",
-				Integer.valueOf(result.getResult().get(0).getsEstimate()), equalTo(90));
+				Double.valueOf(result.getResult().get(0).getsEstimate()), equalTo(90.0));
 	}
 	
 	@Test
 	public void testGetFeatureEstimates_ManySameSuperFeatures_OneSuperFeatureRs_Hours() {
 		when(componentRepository.findOne(mockComponentId)).thenReturn(mockComponent);
 		when(collectorRepository.findOne(mockItem2.getCollectorId())).thenReturn(mockJiraCollector);
-		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean()))
+		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean(),Mockito.anyString()))
 		        .thenReturn(Arrays.asList(mockJiraFeature, mockJiraFeature2));
 
 		DataResponse<List<Feature>> result = featureService.getFeatureEpicEstimates(mockComponentId,
@@ -246,7 +246,7 @@ public class FeatureServiceImplTest {
 				result.getResult(), hasSize(1));
 		assertThat(
 				"The total super feature estimate should be the sum total of any similar super features present in the response",
-				Integer.valueOf(result.getResult().get(0).getsEstimate()), equalTo(900));
+				Double.valueOf(result.getResult().get(0).getsEstimate()), equalTo(900.0));
 	}
 
 	@Test
@@ -283,7 +283,7 @@ public class FeatureServiceImplTest {
 	public void testGetRelevantStories_Scrum() {
 		when(componentRepository.findOne(mockComponentId)).thenReturn(mockComponent);
 		when(collectorRepository.findOne(mockItem3.getCollectorId())).thenReturn(mockJiraCollector);
-		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean())).thenReturn(Arrays.asList(mockJiraFeature, mockJiraFeature2));
+		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean(),Mockito.anyString())).thenReturn(Arrays.asList(mockJiraFeature, mockJiraFeature2));
 		
 		DataResponse<List<Feature>> result = featureService.getRelevantStories(mockComponentId,
 				mockJiraFeature3_oldkanban.getsTeamID(), mockJiraFeature3_oldkanban.getsProjectID(), Optional.of("scrum"));
@@ -295,14 +295,14 @@ public class FeatureServiceImplTest {
 	public void testGetAggregatedSprintEstimates_Scrum() {
 		when(componentRepository.findOne(mockComponentId)).thenReturn(mockComponent);
 		when(collectorRepository.findOne(mockItem3.getCollectorId())).thenReturn(mockJiraCollector);
-		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean())).thenReturn(Arrays.asList(mockJiraFeature, mockJiraFeature2));
+		when(featureRepository.findByActiveEndingSprints(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean(),Mockito.anyString())).thenReturn(Arrays.asList(mockJiraFeature, mockJiraFeature2));
 		
 		DataResponse<SprintEstimate> result = featureService.getAggregatedSprintEstimates(mockComponentId, mockJiraFeature3_oldkanban.getsTeamID(), mockJiraFeature3_oldkanban.getsProjectID(), Optional.of("scrum"), Optional.of("storypoints"));
 		
-		assertEquals(0, result.getResult().getOpenEstimate());
-		assertEquals(40, result.getResult().getInProgressEstimate());
-		assertEquals(50, result.getResult().getCompleteEstimate());
-		assertEquals(90, result.getResult().getTotalEstimate());
+		assertEquals(0, result.getResult().getOpenEstimate(),0);
+		assertEquals(40, result.getResult().getInProgressEstimate(),0);
+		assertEquals(50, result.getResult().getCompleteEstimate(),0);
+		assertEquals(90, result.getResult().getTotalEstimate(),0);
 	}
 	
 	@Test
@@ -314,10 +314,10 @@ public class FeatureServiceImplTest {
 		
 		DataResponse<SprintEstimate> result = featureService.getAggregatedSprintEstimates(mockComponentId, mockJiraFeature3_oldkanban.getsTeamID(), mockJiraFeature3_oldkanban.getsProjectID(), Optional.of("kanban"), Optional.of("storypoints"));
 		
-		assertEquals(40, result.getResult().getOpenEstimate());
-		assertEquals(50, result.getResult().getInProgressEstimate());
-		assertEquals(60, result.getResult().getCompleteEstimate());
-		assertEquals(150, result.getResult().getTotalEstimate());
+		assertEquals(40, result.getResult().getOpenEstimate(),0);
+		assertEquals(50, result.getResult().getInProgressEstimate(),0);
+		assertEquals(60, result.getResult().getCompleteEstimate(),0);
+		assertEquals(150, result.getResult().getTotalEstimate(),0);
 	}
 	
 	private Feature createFeature(ObjectId collectorId, String sId, String sStatus, String sState, Integer sEstimate, String changeDate, boolean isDeleted, 

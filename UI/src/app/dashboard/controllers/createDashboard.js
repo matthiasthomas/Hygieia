@@ -9,8 +9,8 @@
         .module(HygieiaConfig.module)
         .controller('CreateDashboardController', CreateDashboardController);
 
-    CreateDashboardController.$inject = ['$location', '$uibModalInstance', 'dashboardData', 'userService', 'DashboardType', 'cmdbData', 'dashboardService', 'templateMangerData','$uibModal', 'ScoreDisplayType'];
-    function CreateDashboardController($location, $uibModalInstance, dashboardData, userService, DashboardType, cmdbData, dashboardService, templateMangerData,$uibModal, ScoreDisplayType) {
+    CreateDashboardController.$inject = ['$location', '$uibModalInstance', 'dashboardData', 'userService', 'DashboardType', 'cmdbData', 'dashboardService', 'templateMangerData','$uibModal'];
+    function CreateDashboardController($location, $uibModalInstance, dashboardData, userService, DashboardType, cmdbData, dashboardService, templateMangerData,$uibModal) {
         var ctrl = this;
 
         // public variables
@@ -22,10 +22,6 @@
         ctrl.configurationItemBusServId = "";
         ctrl.configurationItemBusAppId = "";
         ctrl.configureSelect =  "widgets";
-        ctrl.scoreSettings = {
-            scoreEnabled : false,
-            scoreDisplay : ScoreDisplayType.HEADER
-        };
 
         // TODO: dynamically register templates with script
         ctrl.templates = [
@@ -33,11 +29,14 @@
             {value: 'caponechatops', name: 'Cap One ChatOps', type: DashboardType.TEAM},
             {value: 'cloud', name: 'Cloud Dashboard', type: DashboardType.TEAM},
             {value: 'splitview', name: 'Split View', type: DashboardType.TEAM},
-            {value: 'product-dashboard', name: 'Product Dashboard', type: DashboardType.PRODUCT}
+            {value: 'product-dashboard', name: 'Product Dashboard', type: DashboardType.PRODUCT},
+            {value: 'aggregate-dashboard', name: 'Aggregate Dashboard', type: DashboardType.AGGREGATE}
         ];
-
+        //[HYG-87:#11- will need to revert later start]
+        //[HYG-98]:# - Reverting
         ctrl.selectWidgetOrTemplateToolTip="Customize your dashboard layout by selecting widgets while creating dashboard or you can choose from pre-existing/custom templates";
-
+        //ctrl.selectWidgetOrTemplateToolTip="Customize your dashboard layout by selecting widgets while creating dashboard";
+        //[HYG-87:#11- will need to revert later stop]
         // public methods
         ctrl.submit = submit;
         ctrl.isTeamDashboardSelected = isTeamDashboardSelected;
@@ -45,6 +44,8 @@
         ctrl.setAvailableTemplates = setAvailableTemplates;
         ctrl.getConfigItem = getConfigItem;
         ctrl.resetFormValidation = resetFormValidation;
+        ctrl.setConfigItemAppId = setConfigItemAppId;
+        ctrl.setConfigItemComponentId = setConfigItemComponentId;
         ctrl.getBusAppToolText = getBusAppToolText;
         ctrl.getBusSerToolText = getBusSerToolText;
         ctrl.configureWidgets = configureWidgets;
@@ -124,10 +125,8 @@
                         type: document.cdf.dashboardType.value,
                         applicationName: appName,
                         componentName: appName,
-                        configurationItemBusServName: ctrl.configurationItemBusServ.configurationItem,
-                        configurationItemBusAppName: ctrl.configurationItemBusApp.configurationItem,
-                        scoreEnabled : ctrl.scoreSettings.scoreEnabled,
-                        scoreDisplay : ctrl.scoreSettings.scoreDisplay
+                        configurationItemBusServObjectId: dashboardService.getBusinessServiceId(ctrl.configurationItemBusServ),
+                        configurationItemBusAppObjectId: dashboardService.getBusinessApplicationId(ctrl.configurationItemBusApp)
                     };
                     $uibModalInstance.dismiss();
                     configureWidgets(submitData);
@@ -135,6 +134,11 @@
             } else {
                 templateValue = document.cdf.selectedTemplate.value;
                 resetFormValidation(form);
+                if(ctrl.dashboardType.id == 'aggregate') {
+                   form.selectedTemplate.$setValidity('required', true);
+                   form.applicationName.$setValidity('required', true);
+                   document.cdf.applicationName.value = "";
+                }
                 // perform basic validation and send to the api
                 if (form.$valid) {
                     var appName = document.cdf.applicationName ? document.cdf.applicationName.value : document.cdf.dashboardType.value,
@@ -144,10 +148,8 @@
                             type: document.cdf.dashboardType.value,
                             applicationName: appName,
                             componentName: appName,
-                            configurationItemBusServName: ctrl.configurationItemBusServ.configurationItem,
-                            configurationItemBusAppName: ctrl.configurationItemBusApp.configurationItem,
-                            scoreEnabled : ctrl.scoreSettings.scoreEnabled,
-                            scoreDisplay : ctrl.scoreSettings.scoreDisplay
+                            configurationItemBusServObjectId: dashboardService.getBusinessServiceId(ctrl.configurationItemBusServ),
+                            configurationItemBusAppObjectId: dashboardService.getBusinessApplicationId(ctrl.configurationItemBusApp)
                         };
 
                     dashboardData
@@ -162,14 +164,15 @@
                             if (data.errorCode === 401) {
                                 $modalInstance.close();
                             } else if (data.errorCode === -13) {
-
                                 if (data.errorMessage) {
                                     ctrl.dupErroMessage = data.errorMessage;
                                 }
-
                                 form.configurationItemBusServ.$setValidity('dupBusServError', false);
                                 form.configurationItemBusApp.$setValidity('dupBusAppError', false);
-
+                            } else if (data.errorCode === -15) {
+                                if (data.errorMessage) {
+                                    ctrl.dupErroMessage = "Dashboard already exists with the title as \"" +document.cdf.dashboardTitle.value +"\".";
+                                }
                             } else {
                                 form.dashboardTitle.$setValidity('createError', false);
                             }
@@ -188,6 +191,14 @@
             form.configurationItemBusServ.$setValidity('dupBusServError', true);
             form.configurationItemBusApp.$setValidity('dupBusAppError', true);
             form.dashboardTitle.$setValidity('createError', true);
+        }
+
+        function setConfigItemAppId(id) {
+            dashboardService.setBusinessServiceId(id);
+        }
+
+        function setConfigItemComponentId(id) {
+            dashboardService.setBusinessApplicationId(id);
         }
 
         function getBusAppToolText() {

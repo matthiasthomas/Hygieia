@@ -8,18 +8,21 @@
         .module(HygieiaConfig.module)
         .controller('SiteController', SiteController);
 
-    SiteController.$inject = ['$scope', '$q', '$uibModal', 'dashboardData', '$location', 'DashboardType', 'userService',
-        'authService','dashboardService','user','paginationWrapperService'];
-    function SiteController($scope, $q, $uibModal, dashboardData, $location, DashboardType, userService,
-                            authService, dashboardService, user, paginationWrapperService) {
+    SiteController.$inject = ['$scope', '$stateParams', '$q', '$uibModal', 'dashboardData', '$location', 'DashboardType', 'userService', 'authService', 'dashboardService','__env'];
+    function SiteController($scope, $stateParams, $q, $uibModal, dashboardData, $location, DashboardType, userService, authService, dashboardService, env) {
         var ctrl = this;
+        var selectedTabIndex = !isNaN($stateParams.tabIndex) ? (+$stateParams.tabIndex) : undefined; 
 
         // public variables
         ctrl.search = '';
         ctrl.myadmin = '';
 
         ctrl.username = userService.getUsername();
+        ctrl.authType = userService.getAuthType();
         ctrl.showAuthentication = userService.isAuthenticated();
+		ctrl.isViewOnly = true; 
+		ctrl.showCreate = false;
+		ctrl.isManager = false;
 
         ctrl.templateUrl = 'app/dashboard/views/navheader.html';
         ctrl.dashboardTypeEnum = DashboardType;
@@ -33,53 +36,84 @@
         ctrl.logout = logout;
         ctrl.admin = admin;
         ctrl.setType = setType;
+        ctrl.showType = showType; 
         ctrl.filterNotOwnedList = filterNotOwnedList;
+        ctrl.filterDashboards = filterDashboards;
         ctrl.editDashboard = editDashboard;
-        ctrl.pageChangeHandler = pageChangeHandler;
-        ctrl.pageChangeHandlerForMyDash = pageChangeHandlerForMyDash;
-        ctrl.getTotalItems = getTotalItems;
-        ctrl.getTotalItemsMyDash = getTotalItemsMyDash;
-        ctrl.getPageSize = getPageSize;
-        ctrl.filterByTitle = filterByTitle;
-
+        ctrl.getInvalidAppOrCompError = getInvalidAppOrCompError;
+        /*ctrl.selecedDashboard = {
+            "name": "All dashboards"
+        };*/
+        
         if (userService.isAdmin()) {
             ctrl.myadmin = true;
+			ctrl.isViewOnly = false;
+			ctrl.showCreate = true;
+        } else if (userService.isManager()) {
+			ctrl.isViewOnly = false;
+			//HYG-96
+			ctrl.showCreate = true;
         }
+		else
+		{
+			ctrl.isViewOnly = true;
+			ctrl.showCreate = false;
+		}
 
+        ctrl.isManager=userService.isManager();
+        
         (function() {
             // set up the different types of dashboards with a custom icon
             var types = dashboardData.types();
-            _(types).forEach(function (item) {
-                if(item.id == DashboardType.PRODUCT) {
-                    item.icon = 'fa-cubes';
-                }
-            });
-
             ctrl.dashboardTypes = types;
-
-            dashboardData.getPageSize().then(function (data) {
-                pullDashboards();
+            pullDashboards();
+            if(selectedTabIndex){
+                setType(ctrl.dashboardTypes[selectedTabIndex - 1].id);
+                ctrl.selecedDashboard = ctrl.dashboardTypes[selectedTabIndex - 1];
+            }
+            _(types).forEach(function (item) {
+                /*if(item.id == DashboardType.PRODUCT) {
+                    item.icon = 'fa-cubes';
+                } else */if(item.id == DashboardType.AGGREGATE) {
+                    item.icon = 'fa-snowflake-o';
+                }
             });
         })();
 
-        function getTotalItems() {
-            return paginationWrapperService.getTotalItems();
-        }
-
-        function getTotalItemsMyDash() {
-            return paginationWrapperService.getTotalItemsMyDash();
-        }
-
-        function getCurrentPage() {
-            return paginationWrapperService.getCurrentPage();
-        }
-
-        function getPageSize() {
-            return paginationWrapperService.getPageSize();
-        }
-
         function setType(type) {
             ctrl.dashboardType = type;
+        }
+        
+        function showType() {
+        	if(ctrl.selecedDashboard) {
+            	_(ctrl.dashboardTypes).forEach(function (object, i) {
+                    if(object.id == ctrl.selecedDashboard.id) {
+                    	//$location.path("#/tab/" + (i + 1));
+                    	window.location.href = "#/tab/" + (i + 1);
+                    	return;
+                    }
+                });
+        	} else {
+        		//$location.path("#/");
+        		window.location.href = "#/";
+        	}
+        }
+
+        function filterDashboards(item) {
+            var matchesSearch = (!ctrl.search || item.name.toLowerCase().indexOf(ctrl.search.toLowerCase()) !== -1);
+            /*if (ctrl.dashboardType == DashboardType.PRODUCT) {
+                return item.isProduct && !item.isAggregate && matchesSearch;
+            }*/
+
+            if (ctrl.dashboardType == DashboardType.TEAM) {
+                return /*!item.isProduct &&*/ !item.isAggregate && matchesSearch;
+            }
+
+            if (ctrl.dashboardType == DashboardType.AGGREGATE) {
+                return item.isAggregate && /*!item.isProduct && */matchesSearch;
+            }
+
+            return matchesSearch;
         }
 
         function admin() {
@@ -93,7 +127,14 @@
 
         function logout() {
             authService.logout();
-            $location.path('/login');
+            if(ctrl.authType == "IDM")
+            {
+                var protocol=location.protocol;
+                var host=location.host;
+                window.location.href = protocol + "//" + host + "/logout.html"
+            } else {
+            	$location.path('/login');
+            }
         }
 
         // method implementations
@@ -129,41 +170,74 @@
             $location.path('/templates');
         }
 
-        function open(dashboardId) {
-            $location.path('/dashboard/' + dashboardId);
+        function open(id, name) {
+            logAnalytics('browse', 'Dashboard-' + name, name);       
+            $location.path('/dashboard/' + id);
         }
 
         function processDashboardResponse(data) {
-            ctrl.dashboards = paginationWrapperService.processDashboardResponse(data);
-        }
+            // add dashboards to list
+            ctrl.dashboards = [];
+            var dashboards = [];
+            for (var x = 0; x < data.length; x++) {
+                var board = {
+                    id: data[x].id,
+                    name: dashboardService.getDashboardTitle(data[x]),
+                    /*isProduct: data[x].type && data[x].type.toLowerCase() === DashboardType.PRODUCT.toLowerCase(),*/
+                    isAggregate: data[x].type && data[x].type.toLowerCase() === DashboardType.AGGREGATE.toLowerCase()
+                };
 
-        function processDashboardFilterResponse(data) {
-            ctrl.dashboards = paginationWrapperService.processDashboardFilterResponse(data);
+                /*if(board.isProduct) {
+                    //console.log(board);
+                }*/
+                dashboards.push(board);
+            }
+
+            ctrl.dashboards = dashboards;
         }
 
         function processDashboardError(data) {
-            ctrl.dashboards = paginationWrapperService.processDashboardError(data);
+            ctrl.dashboards = [];
         }
 
         function processMyDashboardResponse(mydata) {
-            ctrl.mydash = paginationWrapperService.processMyDashboardResponse(mydata);
-        }
 
-        function processFilterMyDashboardResponse(mydata) {
-            ctrl.mydash = paginationWrapperService.processFilterMyDashboardResponse(mydata);
+            // add dashboards to list
+            ctrl.mydash = [];
+            var dashboards = [];
+            for (var x = 0; x < mydata.length; x++) {
+
+                dashboards.push({
+                    id: mydata[x].id,
+                    name: dashboardService.getDashboardTitle(mydata[x]),
+                    type: mydata[x].type,
+                    /*isProduct: mydata[x].type && mydata[x].type.toLowerCase() === DashboardType.PRODUCT.toLowerCase(),*/
+                    isAggregate: mydata[x].type && mydata[x].type.toLowerCase() === DashboardType.AGGREGATE.toLowerCase(),
+                    validServiceName:  mydata[x].validServiceName,
+                    validAppName: mydata[x].validAppName,
+                    configurationItemBusServName:  mydata[x].configurationItemBusServName,
+                    configurationItemBusAppName:  mydata[x].configurationItemBusAppName,
+                    configurationItemBusServId:  mydata[x].configurationItemBusServObjectId,
+                    configurationItemBusAppId:  mydata[x].configurationItemBusAppObjectId,
+                    showError: ctrl.getInvalidAppOrCompError(mydata[x])
+                });
+            }
+
+            ctrl.mydash = dashboards;
         }
 
         function processMyDashboardError(data) {
-            ctrl.mydash = paginationWrapperService.processMyDashboardError(data);
+            ctrl.mydash = [];
         }
+
+
+
 
         function deleteDashboard(item) {
             var id = item.id;
             dashboardData.delete(id).then(function () {
                 _.remove(ctrl.dashboards, {id: id});
                 _.remove(ctrl.mydash, {id: id});
-                paginationWrapperService.calculateTotalItems();
-                paginationWrapperService.calculateTotalItemsMyDash();
             }, function(response) {
                 var msg = 'An error occurred while deleting the dashboard';
 
@@ -190,47 +264,36 @@
             console.log("size after reduction  is:" + uniqueArray.length);
             ctrl.dashboards = uniqueArray;
         }
+        function getInvalidAppOrCompError(data){
+            var showError = false;
 
-        function pullDashboards() {
+            if((data.configurationItemBusServName != undefined && !data.validServiceName) || (data.configurationItemBusAppName != undefined && !data.validAppName)){
+                showError = true;
+            }
+            return showError;
+        }
+        
+    	function gtag(){dataLayer.push(arguments);}
+    	
+        function pullDashboards(){
             // request dashboards
-            dashboardData.searchByPage({"search": '', "size": getPageSize(), "page": 0})
-                .then(processDashboardResponse, processDashboardError);
-
+            dashboardData.search(ctrl.username,ctrl.authType).then(processDashboardResponse, processDashboardError);
+            
+            logAnalytics('browse', 'landing_page', 'landing_page');            
             // request my dashboards
-            dashboardData.searchMyDashboardsByPage({"username": ctrl.username, "size": getPageSize(), "page": 0})
-                .then(processMyDashboardResponse, processMyDashboardError);
-
-            paginationWrapperService.calculateTotalItems()
-                .then (function () {
-                    ctrl.totalItems = paginationWrapperService.getTotalItems();
-                })
-
-            paginationWrapperService.calculateTotalItemsMyDash()
-                .then (function () {
-                    ctrl.totalItemsMyDash = paginationWrapperService.getTotalItemsMyDash();
-                })
+            dashboardData.mydashboard(ctrl.username).then(processMyDashboardResponse, processMyDashboardError);
         }
-
-        function pageChangeHandler(pageNumber) {
-            paginationWrapperService.pageChangeHandler(pageNumber)
-                .then(function() {
-                    ctrl.dashboards = paginationWrapperService.getDashboards();
-                });
-        }
-
-        function pageChangeHandlerForMyDash(pageNumber) {
-            paginationWrapperService.pageChangeHandlerForMyDash(pageNumber)
-                .then(function() {
-                    ctrl.mydash = paginationWrapperService.getMyDashboards();
-                });
-        }
-
-        function filterByTitle (title) {
-            var promises = paginationWrapperService.filterByTitle(title);
-            $q.all(promises).then (function() {
-                ctrl.dashboards = paginationWrapperService.getDashboards();
-                ctrl.mydash = paginationWrapperService.getMyDashboards();
-            });
+        
+        function logAnalytics(action, category, eventLabel) {
+        	if(env.analyticsTagID != '') {
+	            gtag('config', env.analyticsTagID, {'user_id': ctrl.username});
+	    	    //gtag('set', {'userid': ctrl.username});
+	            gtag('event', action, {
+	            	'event_category': category,
+	                'event_label': eventLabel
+	            });
+        	}
         }
     }
+
 })();

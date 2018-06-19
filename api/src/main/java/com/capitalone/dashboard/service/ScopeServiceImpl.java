@@ -84,7 +84,7 @@ public class ScopeServiceImpl implements ScopeService {
 		builder.and(team.collectorItemId.eq(item.getId()));
 
 		// Get one scope by Id
-		List<Scope> scope = scopeRepository.getScopeById(scopeId);
+		List<Scope> scope = scopeRepository.getScopeByIdAndSource(scopeId,(String)item.getOptions().get("source"));
 
 		Collector collector = collectorRepository
 				.findOne(item.getCollectorId());
@@ -121,9 +121,18 @@ public class ScopeServiceImpl implements ScopeService {
 	 */
 	@Override
 	public Page<Scope> getScopeByCollectorWithFilter(ObjectId collectorId, String projectName, Pageable pageable){
-
-		Page<Scope> scopeItems =  scopeRepository.findAllByCollectorIdAndNameContainingIgnoreCase(collectorId,projectName,pageable);
+		Page<Scope> scopeItems =  scopeRepository.findAllByCollectorIdAndNameContainingIgnoreCase(collectorId, projectName,pageable);
+		return scopeItems;
+	}
+	
+	
+	@Override
+	public Page<Scope> getScopeByCollectorWithFilter(ObjectId collectorId,String source, String projectName, Pageable pageable){
+		Page<Scope> scopeItems =  scopeRepository.findAllByCollectorIdAndSourceAndNameContainingIgnoreCase(collectorId,source , projectName,pageable);
 		return scopeItems;
 	}
 
+	
+	
+	
 }

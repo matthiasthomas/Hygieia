@@ -94,5 +94,16 @@ public class ScopeController {
 				.headers(paginationHeaderUtility.buildPaginationHeaders(pageOfScopeItems))
 				.body(pageOfScopeItems.getContent());
 	}
+	
+	
+	@RequestMapping(value = "/scopecollector/source/page/{collectorId}", method = GET, produces = APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<Scope>> teamsByCollectorAndSourcePage(
+			@PathVariable String collectorId,@RequestParam(value = "search", required = false, defaultValue = "") String descriptionFilter, @RequestParam(value = "source", required = true, defaultValue = "") String source, @PageableDefault(size = Integer.MAX_VALUE) Pageable pageable) {
+		Page<Scope> pageOfScopeItems = scopeService.getScopeByCollectorWithFilter(new ObjectId(collectorId),source,descriptionFilter,pageable);
+		return ResponseEntity
+				.ok()
+				.headers(paginationHeaderUtility.buildPaginationHeaders(pageOfScopeItems))
+				.body(pageOfScopeItems.getContent());
+	}
 
 }

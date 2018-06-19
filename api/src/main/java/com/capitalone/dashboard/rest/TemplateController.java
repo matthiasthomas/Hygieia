@@ -4,6 +4,9 @@ import com.capitalone.dashboard.misc.HygieiaException;
 import com.capitalone.dashboard.model.Template;
 import com.capitalone.dashboard.request.CreateTemplateRequest;
 import com.capitalone.dashboard.service.TemplateService;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
+
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,6 +47,8 @@ public class TemplateController {
                     .status(HttpStatus.CREATED)
                     .body(templateService.create(request.toTemplate()));
         } catch (HygieiaException he) {
+			ApplicationDBLogger.log(HygieiaConstants.API,
+					"TemplateController.createTemplate", he.getMessage(), he);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(null);

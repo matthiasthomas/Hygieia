@@ -1,0 +1,105 @@
+<div class="ca-view row">
+	<div class="container-fluid">
+		<div class="widget col-xs-12" style="border-bottom: 0px">
+			<div class="widget-heading" style="border-bottom: 0px">
+				<span style="text-transform: none">{{castView.projName}} -
+					<a ng-href="{{castView.url}}" target="_blank">View dashboard</a>
+				</span>
+			</div>
+		</div>
+		<div class="col-xs-12 text-center">
+			<div class="widget ca-tests">
+				<div class="widget-heading">
+					Software Health Indicators
+				</div>
+				<div class="widget-body">
+
+					<div class="col-lg-12">
+						<div class="col-lg-6">
+							<ng-gauge value="castView.qualities.risk.value | number:2" label="Risk" append="/4" thresholds="castView.threshold"></ng-gauge>
+						</div>
+						<div class="col-lg-6">
+							<ng-gauge value="castView.qualities.maintainability.value | number:2" label="Maintainability" append="/4" thresholds="castView.threshold"></ng-gauge>
+						</div>
+					</div>
+					<div class="col-lg-12">
+						<div class="widget-heading">
+							Critcal Violations
+						</div>
+						<div class="col-lg-6">
+							<span class="widget-heading red">{{castView.qualities.critical_added.name}}</span>
+							<br>
+							<span class="cast-value">{{castView.qualities.critical_added.value | number:0}}</span>
+						</div>
+						<div class="col-lg-6">
+							<span class="widget-heading green">{{castView.qualities.critical_removed.name}}</span>
+							<br>
+							<span class="cast-value">{{castView.qualities.critical_removed.value | number:0}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- <div class="widget ca-tests">
+				<div class="widget-heading">Software Health Indicators</div>
+				<div class="widget-body">
+					<div class="col-lg-12">
+						<div class="col-lg-4 gauge-container">
+							<ng-gauge background-color="#EEE" type="arch" min="0" max="4"
+								thick="15" size="150"
+								value="castView.qualities.robustness.value | number:2"
+								label="Robustness" append="/4" thresholds="castView.threshold"></ng-gauge>
+						</div>
+						<div class="col-lg-4 gauge-container">
+							<ng-gauge background-color="#EEE" type="arch" min="0" max="4"
+								thick="15" size="150"
+								value="castView.qualities.efficiency.value | number:2"
+								label="Efficiency" append="/4" thresholds="castView.threshold"></ng-gauge>
+						</div>
+						<div class="col-lg-4 gauge-container">
+							<ng-gauge background-color="#EEE" type="arch" min="0" max="4"
+								thick="15" size="150"
+								value="castView.qualities.security.value | number:2"
+								label="Security" append="/4" thresholds="castView.threshold"></ng-gauge>
+						</div>
+					</div>
+					<div class="col-lg-12">
+						<div class="col-lg-4 gauge-container">
+							<ng-gauge background-color="#EEE" type="arch" min="0" max="4"
+								thick="15" size="150"
+								value="castView.qualities.changeability.value | number:2"
+								label="Changeability" append="/4"
+								thresholds="castView.threshold"></ng-gauge>
+						</div>
+						<div class="col-lg-4 gauge-container">
+							<ng-gauge background-color="#EEE" type="arch" min="0" max="4"
+								thick="15" size="150"
+								value="castView.qualities.transferability.value | number:2"
+								label="Transferability" append="/4"
+								thresholds="castView.threshold"></ng-gauge>
+
+						</div>
+						<div class="col-lg-4 gauge-container">
+							<ng-gauge background-color="#EEE" type="arch" min="0" max="4"
+								thick="15" size="150"
+								value="castView.qualities.total_quality.value | number:2"
+								label="TQI" append="/4" thresholds="castView.threshold"></ng-gauge>
+						</div>
+					</div>
+					<div class="col-lg-12">
+						<div class="widget-heading">Critical Violations</div>
+						<div class="col-lg-6">
+							<span class="widget-heading red">{{castView.qualities.new_vioations.name}}</span>
+							<br> <span class="cast-value">{{castView.qualities.new_vioations.value
+								| number:0}}</span>
+						</div>
+						<div class="col-lg-6">
+							<span class="widget-heading green">{{castView.qualities.removed_violations.name}}</span>
+							<br> <span class="cast-value">{{castView.qualities.removed_violations.value
+								| number:0}}</span>
+						</div>
+					</div>
+				</div>
+			</div> -->
+		</div>
+	</div>
+</div>

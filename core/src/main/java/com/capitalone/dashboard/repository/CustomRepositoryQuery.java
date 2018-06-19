@@ -11,7 +11,7 @@ import java.util.Map;
 
 
 public interface CustomRepositoryQuery {
-    List<CollectorItem> findCollectorItemsBySubsetOptions(ObjectId id, Map<String, Object> allOptions, Map<String, Object> uniqueOptions);
+    List<CollectorItem> findCollectorItemsBySubsetOptions(ObjectId id, Map<String, Object> allOptions, Map<String, Object> selectOptions);
     List<Component> findComponents(Collector collector);
     List<Component> findComponents(CollectorType collectorType);
     List<Component> findComponents(Collector collector, CollectorItem collectorItem);

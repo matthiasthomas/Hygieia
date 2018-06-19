@@ -17,6 +17,8 @@ import com.capitalone.dashboard.model.ServiceStatus;
 import com.capitalone.dashboard.model.monitor.MonitorService;
 import com.capitalone.dashboard.repository.DashboardRepository;
 import com.capitalone.dashboard.repository.ServiceRepository;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
 import com.capitalone.dashboard.util.URLConnectionFactory;
 
 
@@ -131,6 +133,8 @@ public class ServiceServiceImpl implements ServiceService {
     	try {
 			return urlConnectionFactory.get(new URL(url));
 		} catch (IOException e) {
+			ApplicationDBLogger.log(HygieiaConstants.API,
+					"ServiceServiceImpl.getUrlConnection", e.getMessage(), e);
 			LOGGER.error(e.getMessage());
 		}
     	

@@ -52,6 +52,7 @@ public class ScopeRepositoryTest extends FongoBaseRepositoryTest {
 		mockV1Scope.setId(ObjectId.get());
 		mockV1Scope.setIsDeleted("False");
 		mockV1Scope.setName("Massive Project");
+		mockV1Scope.setSource("SPT");
 		mockV1Scope.setpId("Scope:14327");
 		mockV1Scope
 				.setProjectPath("This -> Is -> C -> Project -> Path -> " + mockV1Scope.getName());
@@ -69,6 +70,7 @@ public class ScopeRepositoryTest extends FongoBaseRepositoryTest {
 		mockJiraScope.setIsDeleted("False");
 		mockJiraScope.setName("Yet Another Agile Scope");
 		mockJiraScope.setpId("110213780");
+		mockJiraScope.setSource("SPT");
 		mockJiraScope.setProjectPath("This -> Is -> B -> Project -> Path -> "
 				+ mockJiraScope.getName());
 
@@ -84,6 +86,7 @@ public class ScopeRepositoryTest extends FongoBaseRepositoryTest {
 		mockJiraScope2.setIsDeleted("False");
 		mockJiraScope2.setName("This One Is Serious");
 		mockJiraScope2.setpId("11978790");
+		mockJiraScope2.setSource("SPT");
 		mockJiraScope2.setProjectPath("This -> Is -> A -> Project -> Path -> "
 				+ mockJiraScope2.getName());
 	}
@@ -125,7 +128,7 @@ public class ScopeRepositoryTest extends FongoBaseRepositoryTest {
 		String testScopeId = mockJiraScope.getpId();
 
 		assertEquals("Expected scope Name did not match actual scope Name",
-				mockJiraScope.getName(), scopeRepo.getScopeById(testScopeId).get(0).getName()
+				mockJiraScope.getName(), scopeRepo.getScopeByIdAndSource(testScopeId ,"SPT").get(0).getName()
 						.toString());
 	}
 
@@ -151,7 +154,7 @@ public class ScopeRepositoryTest extends FongoBaseRepositoryTest {
 		assertEquals(
 				"Expected max change dated scope ID did not match actual max change dated scope ID",
 				mockJiraScope.getChangeDate(),
-				scopeRepo.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(jiraCollectorId, maxDateLoser).get(0)
+				scopeRepo.findTopByCollectorIdAndSourceAndChangeDateGreaterThanOrderByChangeDateDesc(jiraCollectorId, "SPT" ,maxDateLoser).get(0)
 						.getChangeDate().toString());
 	}
 }

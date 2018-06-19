@@ -1,14 +1,13 @@
 package com.capitalone.dashboard.rest;
 
-import com.capitalone.dashboard.editors.CaseInsensitiveCollectorTypeEditor;
-import com.capitalone.dashboard.model.Collector;
-import com.capitalone.dashboard.model.CollectorItem;
-import com.capitalone.dashboard.model.CollectorType;
-import com.capitalone.dashboard.request.CollectorItemRequest;
-import com.capitalone.dashboard.request.CollectorRequest;
-import com.capitalone.dashboard.service.CollectorService;
-import com.capitalone.dashboard.util.PaginationHeaderUtility;
-import org.apache.commons.collections.MapUtils;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,18 +23,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import java.util.List;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import com.capitalone.dashboard.editors.CaseInsensitiveCollectorTypeEditor;
+import com.capitalone.dashboard.misc.HygieiaException;
+import com.capitalone.dashboard.model.Collector;
+import com.capitalone.dashboard.model.CollectorItem;
+import com.capitalone.dashboard.model.CollectorType;
+import com.capitalone.dashboard.request.CollectorItemRequest;
+import com.capitalone.dashboard.request.CollectorRequest;
+import com.capitalone.dashboard.request.ComponentRequest;
+import com.capitalone.dashboard.service.CollectorService;
+import com.capitalone.dashboard.util.PaginationHeaderUtility;
 
 @RestController
 public class CollectorController {
 
     private CollectorService collectorService;
     private PaginationHeaderUtility paginationHeaderUtility;
+	private static final String CLASS_BASE_PATH = "com.capitalone.dashboard.domain.";
 
 
     @Autowired
@@ -61,19 +65,27 @@ public class CollectorController {
     public List<Collector> collectorsByType(@PathVariable CollectorType collectorType) {
         return collectorService.collectorsByType(collectorType);
     }
+    
+    @RequestMapping(value = "/collector/type/name/{collectorType}",
+            method = GET, produces = APPLICATION_JSON_VALUE)
+    public List<Collector> collectorsByTypeAndName(@PathVariable CollectorType collectorType, @RequestParam(value = "name", required = true) String name) {
+        return collectorService.collectorsByTypeAndName(collectorType, name);
+    }
 
     @RequestMapping(value = "/collector/item", method = POST,
             consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<CollectorItem> createCollectorItem(@Valid @RequestBody CollectorItemRequest request) {
-        if (MapUtils.isEmpty(request.getUniqueOptions())) {
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(collectorService.createCollectorItem(request.toCollectorItem()));
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(collectorService.createCollectorItemSelectOptions(request.toCollectorItem(), request.getOptions(), request.getUniqueOptions()));
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(collectorService.createCollectorItem(request.toCollectorItem()));
+    }
+    
+    @RequestMapping(value = "/collector/itembyoptions", method = POST,
+            consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<CollectorItem> getCollectorItemByOptions(@Valid @RequestBody CollectorItemRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(collectorService.getCollectorItemByOptions(request.toCollectorItem()));
     }
 
     @RequestMapping(value = "/collector/item/{id}", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -86,9 +98,21 @@ public class CollectorController {
                                                                              @RequestParam(value = "type", required = true) String type) {
         return ResponseEntity.ok(collectorService.getCollectorItemForComponent(id, type));
     }
+    
+    /**
+     * This Rest API provides collector items from component.
+     * 
+     * @param id component id
+     * @param type component type
+     * @return Provides collector items from component.
+     */
+    @RequestMapping(value = "/collector/item/component/repo/{id}", method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CollectorItem>> getComponentCollectorItemByComponentId(@PathVariable String id,
+                                                                             @RequestParam(value = "type", required = true) String type) {
+        return ResponseEntity.ok(collectorService.getCollectorItemFromComponent(id, type));
+    }
 
-    @RequestMapping(value = "/collector/item/type/{collectorType}", method = GET,
-            produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/collector/item/type/{collectorType}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CollectorItem>> collectorItemsByType(@PathVariable CollectorType collectorType, @RequestParam(value = "search", required = false, defaultValue = "") String descriptionFilter, @PageableDefault(size = Integer.MAX_VALUE) Pageable pageable) {
         Page<CollectorItem> pageOfCollectorItems = collectorService.collectorItemsByTypeWithFilter(collectorType, descriptionFilter, pageable);
         return ResponseEntity
@@ -96,5 +120,42 @@ public class CollectorController {
                 .headers(paginationHeaderUtility.buildPaginationHeaders(pageOfCollectorItems))
                 .body(pageOfCollectorItems.getContent());
     }
-
+    @RequestMapping(value = "/collector/item/class/{collectorClass}", method = GET, produces = APPLICATION_JSON_VALUE)
+    public List<CollectorItem> collectorItemsByType(@PathVariable String collectorClass) {
+        return collectorService.collectorItemsClass(CLASS_BASE_PATH + collectorClass);
+    }
+    
+    @RequestMapping(value = "/collector/item/class/name/{collectorClass}/{appName}", method = GET, produces = APPLICATION_JSON_VALUE)
+    public List<CollectorItem> collectorItemsByType(@PathVariable String collectorClass,@PathVariable String appName) {
+        return collectorService.collectorItemsClassAndAppName(CLASS_BASE_PATH + collectorClass, appName);
+    }
+    
+    @RequestMapping(value = "/collector/item/type/name/{collectorType}", method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CollectorItem>> collectorItemsByTypeAndName(@PathVariable CollectorType collectorType, @RequestParam(value = "name", required = true) String name, @RequestParam(value = "search", required = false, defaultValue = "") String descriptionFilter, @PageableDefault(size = Integer.MAX_VALUE) Pageable pageable) {
+        Page<CollectorItem> pageOfCollectorItems = collectorService.collectorItemsByTypeAndNameWithFilter(collectorType, name, descriptionFilter, pageable);
+        return ResponseEntity
+                .ok()
+                .headers(paginationHeaderUtility.buildPaginationHeaders(pageOfCollectorItems))
+                .body(pageOfCollectorItems.getContent());
+    }
+    
+    @RequestMapping(value = "/collector/items/update", method = POST,
+            consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CollectorItem>> updateComponentCollectionItems(@Valid @RequestBody ComponentRequest component) throws HygieiaException {    	
+    	List<CollectorItem> response = collectorService.updateComponentCollectionItems(component.getComponentId(), component.getCollectorType(),component.getCollectorItems()); 
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+    
+    @RequestMapping(value = "/collector/items/createUpdate", method = POST,
+            consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CollectorItem>> createUpdateComponentCollectionItems(@Valid @RequestBody ComponentRequest component) throws HygieiaException {    	
+    	List<CollectorItem> response = collectorService.createUpdateComponentCollectionItems(component.getComponentId(), component.getCollectorType(),component.getCollectorItems()); 
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+    
 }
+

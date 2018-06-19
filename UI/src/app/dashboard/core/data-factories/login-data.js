@@ -12,11 +12,13 @@
         var testDetailRoute = 'test-data/login_detail.json';
         var LoginDetailRoute = '/api/login';
         var LdapLoginDetailRoute = '/api/login/ldap';
+        var IDMLoginDetailRoute = '/api/login/IDM';
         var authenticationProvidersRoute = '/api/authenticationProviders';
 
         return {
             login: login,
             loginLdap: loginLdap,
+            loginIDM: loginIDM,
             getAuthenticationProviders: getAuthenticationProviders
         };
 
@@ -39,19 +41,25 @@
       function loginLdap(id, password) {
         return callLogin(LdapLoginDetailRoute, id, password);
       }
+      
+      function loginIDM() {
+    	  return callLogin(IDMLoginDetailRoute, "", "");
+      }
 
       function callLogin(route, id, passwd){
-        var postData={
-    				'username': id,
-    				'password': passwd
-    			};
+    	  var postData="";
+    	  if(id != "" || passwd != "") {
+	        postData={
+	    				'username': id,
+	    				'password': passwd
+	    			};
+    	  }
           if(HygieiaConfig.local)
           {
             return getPromise(id,passwd,testDetailRoute);
           }
           else
           {
-
         return $http({
           method: 'POST',
           url: route,

@@ -11,7 +11,10 @@ import com.capitalone.dashboard.repository.ComponentRepository;
 import com.capitalone.dashboard.request.CloudVolumeCreateRequest;
 import com.capitalone.dashboard.request.CloudVolumeListRefreshRequest;
 import com.capitalone.dashboard.response.CloudVolumeAggregatedResponse;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
 import com.capitalone.dashboard.util.HygieiaUtils;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bson.types.ObjectId;
@@ -152,6 +155,9 @@ public class CloudVolumeServiceImpl implements CloudVolumeService {
                         cloudVolumeRepository.save(existing);
                         objectIds.add(existing.getId().toString());
                     } catch (IllegalAccessException | InvocationTargetException e) {
+						ApplicationDBLogger.log(HygieiaConstants.API,
+								"CloudVolumeServiceImpl.upsertVolume",
+								e.getMessage(), e);
                     	LOGGER.error("Error saving cloud volume info for volumeID: " + ci.getVolumeId(), e);
                     }
                 }

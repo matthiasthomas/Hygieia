@@ -45,7 +45,11 @@ public class CodeQualityController {
 
     @RequestMapping(value = "/quality/static-analysis", method = GET, produces = APPLICATION_JSON_VALUE)
     public DataResponse<Iterable<CodeQuality>> qualityStaticAnalysis(@Valid CodeQualityRequest request) {
-        request.setType(CodeQualityType.StaticAnalysis);
+    	if (request.getType() != null) {
+    		request.setType(request.getType());
+    	} else {
+    		request.setType(CodeQualityType.StaticAnalysis);
+    	}
         return codeQualityService.search(request);
     }
 

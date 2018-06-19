@@ -7,6 +7,7 @@ import java.util.Collection;
 
 public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken {
 
+	@SuppressWarnings({"CPD-START"})
 	private final Object principal;
 	private Object credentials;
 
@@ -44,10 +45,10 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken {
 		super.setAuthenticated(false);
 	}
 
+	@SuppressWarnings({"CPD-END"})
 	@Override
 	public void eraseCredentials() {
 		super.eraseCredentials();
 		credentials = null;
 	}
-
 }

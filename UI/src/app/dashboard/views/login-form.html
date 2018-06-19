@@ -1,4 +1,4 @@
-<div class="auth-modal-heading">{{authType.name}}</div>
+<div class="auth-modal-heading"><!-- {{authType.name}}  -->User Login</div>
 <div class="auth-modal-body">
     <form class="col-xs-10 col-xs-push-1 col-sm-8 col-sm-push-2"
         id="lg"
@@ -8,6 +8,7 @@
         role="form"
         novalidate>
         <form-group input="username"
+            enctype="application/x-www-form-urlencoded"
             errors="{required: 'Username is required', invalidUsernamePassword: 'Incorrect username and password'}">
             <input type="text"
                 name="username"
@@ -16,7 +17,7 @@
                 required
                 minlength="4"
                 autocomplete="off"
-                placeholder="Enter your username"/>
+                placeholder="Enter your firstname_lastname"/>
         </form-group>
         <form-group input="password"
             errors="{required:'Password is required'}">
@@ -33,6 +34,7 @@
                 Log in
             </button>
         </div>
+        <div class="clearfix"></div>
         <div class="gap text-center" ng-show="authType.signup">
             <p>Don't have an account?</p>
             <div class="btn btn-link btn-wide"

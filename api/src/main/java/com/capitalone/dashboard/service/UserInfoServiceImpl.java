@@ -2,23 +2,8 @@ package com.capitalone.dashboard.service;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
-
-import com.capitalone.dashboard.auth.AuthProperties;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
-
-import com.capitalone.dashboard.auth.exceptions.DeleteLastAdminException;
-import com.capitalone.dashboard.auth.exceptions.UserNotFoundException;
-import com.capitalone.dashboard.model.AuthType;
-import com.capitalone.dashboard.model.UserInfo;
-import com.capitalone.dashboard.model.UserRole;
-import com.capitalone.dashboard.repository.UserInfoRepository;
-import com.google.common.collect.Sets;
 
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
@@ -28,75 +13,189 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
+
+import com.capitalone.dashboard.auth.AuthProperties;
+import com.capitalone.dashboard.auth.exceptions.CreateUserException;
+import com.capitalone.dashboard.auth.exceptions.DeleteLastAdminException;
+import com.capitalone.dashboard.auth.exceptions.UserNotFoundException;
+import com.capitalone.dashboard.model.AuthType;
+import com.capitalone.dashboard.model.UserInfo;
+import com.capitalone.dashboard.model.UserRole;
+import com.capitalone.dashboard.repository.UserInfoRepository;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
+import com.google.common.collect.Sets;
+
 @Component
 public class UserInfoServiceImpl implements UserInfoService {
 
-	private static final Logger LOGGER = Logger.getLogger(UserInfoServiceImpl.class);
+	private static final Logger LOGGER = Logger
+			.getLogger(UserInfoServiceImpl.class);
 
 	private UserInfoRepository userInfoRepository;
 	@Autowired
 	private AuthProperties authProperties;
-	
+
 	@Autowired
 	public UserInfoServiceImpl(UserInfoRepository userInfoRepository) {
 		this.userInfoRepository = userInfoRepository;
 	}
-	
+
 	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities(String username, String firstName, String middleName, String lastName, String displayName, String emailAddress, AuthType authType) {
-		Collection<UserRole> roles = getUserInfo(username, firstName, middleName, lastName, displayName, emailAddress, authType).getAuthorities();
+	public Collection<? extends GrantedAuthority> getAuthorities(
+			String username, String firstName, String middleName,
+			String lastName, String displayName, String emailAddress,
+			AuthType authType) {
+		Collection<UserRole> roles = getUserInfo(username, firstName,
+				middleName, lastName, displayName, emailAddress, authType)
+				.getAuthorities();
 		return createAuthorities(roles);
 	}
-	
+
 	@Override
-	public UserInfo getUserInfo(String username, String firstName, String middleName, String lastName, String displayName, String emailAddress, AuthType authType) {
-		UserInfo userInfo = userInfoRepository.findByUsernameAndAuthType(username, authType);
-		if(userInfo == null) {
-			userInfo = createUserInfo(username, firstName, middleName, lastName, displayName, emailAddress, authType);
+	public UserInfo getUserInfo(String username, String firstName,
+			String middleName, String lastName, String displayName,
+			String emailAddress, AuthType authType) {
+		
+/*		UserInfo userInfo = userInfoRepository.findByUsernameAndAuthType(
+				username, authType);*/
+		UserInfo userInfo = null;
+		List<UserInfo> userList = userInfoRepository.findByUsername(username.toLowerCase());
+		if (userList != null && userList.size() == 0) {
+			userInfo = createUserInfo(username, firstName, middleName,
+					lastName, displayName, emailAddress, authType);
+			userInfoRepository.save(userInfo);
+		} else {
+			userInfo = userList.get(0);
+			// To capture user's last login
+			userInfo.setUpdatedDate(null);
 			userInfoRepository.save(userInfo);
 		}
-		
-		// TODO: This will give the standard "admin" user admin privledges, might want
+
+		// TODO: This will give the standard "admin" user admin privledges,
+		// might want
 		// to bootstrap in an admin user, or something better than this.
 		addAdminRoleToStandardAdminUser(userInfo);
-		
+
 		return userInfo;
 	}
-	
-    @Override
-    public Collection<UserInfo> getUsers() {
-        return Sets.newHashSet(userInfoRepository.findAll());
-    }
 
-    @Override
-    public UserInfo promoteToAdmin(String username, AuthType authType) {
-        UserInfo user = userInfoRepository.findByUsernameAndAuthType(username, authType);
-        if (user == null) {
-            throw new UserNotFoundException(username, authType);
-        }
-        
-        user.getAuthorities().add(UserRole.ROLE_ADMIN);
-        UserInfo savedUser = userInfoRepository.save(user);
-        return savedUser;
-    }
-    
-    @Override
-    public UserInfo demoteFromAdmin(String username, AuthType authType) {
-        int numberOfAdmins = userInfoRepository.findByAuthoritiesIn(UserRole.ROLE_ADMIN).size();
-        if(numberOfAdmins <= 1) {
-            throw new DeleteLastAdminException();
-        }
-        UserInfo user = userInfoRepository.findByUsernameAndAuthType(username, authType);
-        if (user == null) {
-            throw new UserNotFoundException(username, authType);
-        }
-        
-        user.getAuthorities().remove(UserRole.ROLE_ADMIN);
-        UserInfo savedUser = userInfoRepository.save(user);
-        return savedUser;
-    }
+	@Override
+	public UserInfo createUser(UserInfo userInfo) {
+		UserInfo existing = userInfoRepository.findByUsernameAndAuthType(
+				userInfo.getUsername(), userInfo.getAuthType());
+		if (existing == null) {
+			if (!(AuthType.LDAP.equals(userInfo.getAuthType()) || AuthType.IDM.equals(userInfo.getAuthType())) )
+				throw new CreateUserException("Auth Type "
+						+ userInfo.getAuthType()
+						+ " is not supported currently");
+			userInfo = userInfoRepository.save(userInfo);
+		} else
+			throw new CreateUserException("User already exist with username : "
+					+ userInfo.getUsername() + " and Auth Type : "
+					+ userInfo.getAuthType());
 
-	private UserInfo createUserInfo(String username, String firstName, String middleName, String lastName, String displayName, String emailAddress, AuthType authType) {
+		return userInfo;
+	}
+
+	@Override
+	public boolean deleteUser(ObjectId id) {
+		userInfoRepository.delete(id);
+		return true;
+	}
+
+	@Override
+	public Collection<UserInfo> getUsers() {
+		return Sets.newHashSet(userInfoRepository.findAll());
+	}
+
+	@Override
+	public Page<UserInfo> searchUsers(String search, int page, int size) {
+		// return
+		// userInfoRepository.findByUsernameLikeOrFirstNameLikeOrLastNameLikeOrderByUsernameAscAllIgnoreCase(search,search,search,new
+		// PageRequest(page, size));
+		return userInfoRepository.searchUser(search,
+				new PageRequest(page, size));
+	}
+
+	@Override
+	public Collection<UserInfo> getUsersByRole(ObjectId role) {
+		return Sets.newHashSet(userInfoRepository.findByRole(role));
+	}
+
+	private void processAuthority(UserInfo user, UserRole role) {
+		boolean hasAPI = user.getAuthorities().contains(UserRole.ROLE_API);
+		user.getAuthorities().clear();
+		user.getAuthorities().add(role);
+
+		if (hasAPI)
+			user.getAuthorities().add(UserRole.ROLE_API);
+	}
+
+	@Override
+	public UserInfo promoteToAdmin(String username, AuthType authType) {
+		UserInfo user = userInfoRepository.findByUsernameAndAuthType(username,
+				authType);
+		if (user == null) {
+			throw new UserNotFoundException(username, authType);
+		}
+		processAuthority(user, UserRole.ROLE_ADMIN);
+		UserInfo savedUser = userInfoRepository.save(user);
+		return savedUser;
+	}
+
+	@Override
+	public UserInfo demoteFromAdmin(String username, AuthType authType) {
+		int numberOfAdmins = userInfoRepository.findByAuthoritiesIn(
+				UserRole.ROLE_ADMIN).size();
+		if (numberOfAdmins <= 1) {
+			throw new DeleteLastAdminException();
+		}
+		UserInfo user = userInfoRepository.findByUsernameAndAuthType(username,
+				authType);
+		if (user == null) {
+			throw new UserNotFoundException(username, authType);
+		}
+
+		processAuthority(user, UserRole.ROLE_USER);
+		UserInfo savedUser = userInfoRepository.save(user);
+		return savedUser;
+	}
+
+	@Override
+	public UserInfo updateUser(UserInfo userInfo) {
+		UserInfo user = userInfoRepository.findByUsernameAndAuthType(
+				userInfo.getUsername(), userInfo.getAuthType());
+
+		if (user == null) {
+			throw new UserNotFoundException(userInfo.getUsername(),
+					userInfo.getAuthType());
+		}
+
+		processAuthority(user, userInfo.getAuthorities().iterator().next());
+		user.setLastName(userInfo.getLastName());
+		user.setFirstName(userInfo.getFirstName());
+		user.setEmailAddress(userInfo.getEmailAddress());
+		user.setDisplayName(userInfo.getLastName() + " ,"
+				+ userInfo.getFirstName());
+		user.setMiddleName(userInfo.getMiddleName());
+		user.setUpdatedDate(null);
+		UserInfo savedUser = userInfoRepository.save(user);
+		return savedUser;
+	}
+
+	private UserInfo createUserInfo(String username, String firstName,
+			String middleName, String lastName, String displayName,
+			String emailAddress, AuthType authType) {
 		UserInfo userInfo = new UserInfo();
 		userInfo.setUsername(username);
 		userInfo.setFirstName(firstName);
@@ -105,28 +204,36 @@ public class UserInfoServiceImpl implements UserInfoService {
 		userInfo.setDisplayName(displayName);
 		userInfo.setEmailAddress(emailAddress);
 		userInfo.setAuthType(authType);
+		userInfo.setCreatedDate(null);
+		userInfo.setUpdatedDate(null);
 		userInfo.setAuthorities(Sets.newHashSet(UserRole.ROLE_USER));
-		
+
 		return userInfo;
 	}
 
 	private void addAdminRoleToStandardAdminUser(UserInfo userInfo) {
-		if ("admin".equals(userInfo.getUsername()) && AuthType.STANDARD == userInfo.getAuthType()) {
+		if ("admin".equals(userInfo.getUsername())
+				&& AuthType.STANDARD == userInfo.getAuthType()) {
 			userInfo.getAuthorities().add(UserRole.ROLE_ADMIN);
 		}
 	}
-	
-	private Collection<? extends GrantedAuthority> createAuthorities(Collection<UserRole> authorities) {
+
+	private Collection<? extends GrantedAuthority> createAuthorities(
+			Collection<UserRole> authorities) {
 		Collection<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>();
-		authorities.forEach(authority -> {
-			grantedAuthorities.add(new SimpleGrantedAuthority(authority.name())); 
-		});
-		
+		authorities
+				.forEach(authority -> {
+					grantedAuthorities.add(new SimpleGrantedAuthority(authority
+							.name()));
+				});
+
 		return grantedAuthorities;
 	}
 
 	/**
-	 * Can be called to check validity of userId when creating a dashboard remotely via api
+	 * Can be called to check validity of userId when creating a dashboard
+	 * remotely via api
+	 * 
 	 * @param userId
 	 * @param authType
 	 * @return
@@ -141,6 +248,9 @@ public class UserInfoServiceImpl implements UserInfoService {
 					return searchLdapUser(userId);
 				} catch (NamingException ne) {
 					LOGGER.error("Failed to query ldap for " + userId, ne);
+					ApplicationDBLogger.log(HygieiaConstants.API,
+							"UserInfoServiceImpl.isUserValid",
+							"Failed to query ldap for " + userId, ne);
 					return false;
 				}
 			} else {
@@ -153,21 +263,33 @@ public class UserInfoServiceImpl implements UserInfoService {
 		boolean searchResult = false;
 
 		Properties props = new Properties();
-		props.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+		props.put(Context.INITIAL_CONTEXT_FACTORY,
+				"com.sun.jndi.ldap.LdapCtxFactory");
 		props.put("java.naming.security.protocol", "ssl");
 		props.put(Context.SECURITY_AUTHENTICATION, "simple");
 
 		try {
 			if (!StringUtils.isBlank(authProperties.getAdUrl())) {
 				props.put(Context.PROVIDER_URL, authProperties.getAdUrl());
-				props.put(Context.SECURITY_PRINCIPAL, authProperties.getLdapBindUser() + "@" + authProperties.getAdDomain());
+				props.put(
+						Context.SECURITY_PRINCIPAL,
+						authProperties.getLdapBindUser() + "@"
+								+ authProperties.getAdDomain());
 			} else {
-				props.put(Context.PROVIDER_URL, authProperties.getLdapServerUrl());
-				props.put(Context.SECURITY_PRINCIPAL, StringUtils.replace(authProperties.getLdapUserDnPattern(), "{0}", authProperties.getLdapBindUser()));
+				props.put(Context.PROVIDER_URL,
+						authProperties.getLdapServerUrl());
+				props.put(Context.SECURITY_PRINCIPAL, StringUtils.replace(
+						authProperties.getLdapUserDnPattern(), "{0}",
+						authProperties.getLdapBindUser()));
 			}
-			props.put(Context.SECURITY_CREDENTIALS, authProperties.getLdapBindPass());
+			props.put(Context.SECURITY_CREDENTIALS,
+					authProperties.getLdapBindPass());
 		} catch (Exception e) {
-			LOGGER.error("Failed to retrieve properties for InitialDirContext", e);
+			LOGGER.error("Failed to retrieve properties for InitialDirContext",
+					e);
+			ApplicationDBLogger.log(HygieiaConstants.API,
+					"UserInfoServiceImpl.searchLdapUser",
+					"Failed to retrieve properties for InitialDirContext", e);
 			return false;
 		}
 
@@ -179,18 +301,20 @@ public class UserInfoServiceImpl implements UserInfoService {
 
 			String searchBase = "";
 			String searchFilter = "";
-			if(!StringUtils.isBlank(authProperties.getAdUrl())) {
+			if (!StringUtils.isBlank(authProperties.getAdUrl())) {
 				searchBase = authProperties.getAdRootDn();
-				searchFilter = "(&(objectClass=user)(userPrincipalName="	+ searchId + "@" + authProperties.getAdDomain() + "))";
+				searchFilter = "(&(objectClass=user)(userPrincipalName="
+						+ searchId + "@" + authProperties.getAdDomain() + "))";
 			} else {
 				searchBase = authProperties.getLdapUserDnPattern().substring(
 						authProperties.getLdapUserDnPattern().indexOf(',') + 1,
-						authProperties.getLdapUserDnPattern().length()
-				);
-				searchFilter = "(&(objectClass=user)(sAMAccountName="	+ searchId + "))";
+						authProperties.getLdapUserDnPattern().length());
+				searchFilter = "(&(objectClass=user)(sAMAccountName="
+						+ searchId + "))";
 			}
 
-			NamingEnumeration<SearchResult> results = context.search(searchBase, searchFilter, ctrls);
+			NamingEnumeration<SearchResult> results = context.search(
+					searchBase, searchFilter, ctrls);
 
 			if (!results.hasMore()) {
 				return searchResult;

@@ -3,16 +3,20 @@ package com.capitalone.dashboard.rest;
 import com.capitalone.dashboard.editors.CaseInsensitiveBuildStatusEditor;
 import com.capitalone.dashboard.misc.HygieiaException;
 import com.capitalone.dashboard.model.Build;
+import com.capitalone.dashboard.model.BuildAggregateData;
 import com.capitalone.dashboard.model.BuildStatus;
 import com.capitalone.dashboard.model.DataResponse;
 import com.capitalone.dashboard.request.BuildDataCreateRequest;
 import com.capitalone.dashboard.request.BuildSearchRequest;
 import com.capitalone.dashboard.service.BuildService;
+
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,5 +54,10 @@ public class BuildController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+    
+    @RequestMapping(value = "/build/aggregate/{dashboardId}", method = GET, produces = APPLICATION_JSON_VALUE)
+    public DataResponse<BuildAggregateData> builds(@PathVariable String dashboardId) {
+        return buildService.getAggregateForProductDashboard(new ObjectId(dashboardId));
     }
 }

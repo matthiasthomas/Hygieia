@@ -7,8 +7,9 @@
     angular
         .module(HygieiaConfig.module + '.core')
         .constant('DashboardType', {
-            PRODUCT: 'product',
-            TEAM: 'team'
+            /*PRODUCT: 'product',*/
+            TEAM: 'team',
+            AGGREGATE: 'aggregate'
         })
         .factory('dashboardData', dashboardData);
 
@@ -24,19 +25,10 @@
         var myownerRoute = "/api/dashboard/myowner";
         var updateBusItemsRoute = '/api/dashboard/updateBusItems';
         var updateDashboardWidgetsRoute = '/api/dashboard/updateDashboardWidgets';
-        var dashboardRoutePage = '/api/dashboard/page';
-        var dashboardFilterRoutePage = '/api/dashboard/page/filter';
-        var dashboardCountRoute = '/api/dashboard/count';
-        var dashboardFilterCountRoute = '/api/dashboard/filter/count';
-        var dashboardPageSize = '/api/dashboard/pagesize';
-        var myDashboardRoutePage = '/api/dashboard/mydashboard/page';
-        var myDashboardFilterRoutePage = '/api/dashboard/mydashboard/page/filter';
-        var myDashboardCountRoute = '/api/dashboard/mydashboard/count';
-        var myDashboardFilterCountRoute = '/api/dashboard/mydashboard/filter/count';
-        var updateDashboardScoreSettingsRoute = '/api/dashboard/updateScoreSettings';
 
         return {
             search: search,
+            searchAll : searchAll,
             mydashboard: mydashboard,
             myowner: myowner,
             owners: owners,
@@ -50,17 +42,7 @@
             getComponent:getComponent,
             updateBusItems:updateBusItems,
             updateDashboardWidgets:updateDashboardWidgets,
-            deleteWidget:deleteWidget,
-            searchByPage: searchByPage,
-            filterByTitle:filterByTitle,
-            count:count,
-            filterCount: filterCount,
-            getPageSize:getPageSize,
-            myDashboardsCount:myDashboardsCount,
-            searchMyDashboardsByPage:searchMyDashboardsByPage,
-            filterMyDashboardsByTitle:filterMyDashboardsByTitle,
-            filterMyDashboardCount:filterMyDashboardCount,
-            updateDashboardScoreSettings: updateDashboardScoreSettings
+            clearWidget:clearWidget
         };
 
         // reusable helper
@@ -71,8 +53,12 @@
         }
         
         // gets list of dashboards
-        function search() {
-            return getPromise(HygieiaConfig.local ? testSearchRoute : dashboardRoute);
+        function search(username,authtype) {
+            return getPromise(HygieiaConfig.local ? testSearchRoute : dashboardRoute + '/search' + '/' + username + '/' + authtype);
+        }
+
+		function searchAll() {
+            return getPromise(HygieiaConfig.local ? testSearchRoute : dashboardRoute + '/list');
         }
 
         //gets list of owned dashboard
@@ -113,7 +99,7 @@
                     return response.data;
                 })
                 .error(function (response) {
-                    return null;
+                    return response.data;
                 });
         }
 
@@ -151,9 +137,13 @@
                     "name": "Team"
                 },
                 {
+                	"id": "aggregate",
+                	"name": "Aggregate"
+                }/*,
+                {
                     "id": "product",
                     "name": "Product"
-                }
+                }*/
             ];
 
         }
@@ -163,7 +153,7 @@
             // create a copy so we don't modify the original
             widget = angular.copy(widget);
 
-            console.log('New Widget Config', widget);
+            //console.log('New Widget Config', widget);
 
             var widgetId = widget.id;
 
@@ -178,6 +168,14 @@
 
             return route.then(function (response) {
                 return response.data;
+            });
+        }
+        
+        // Remove widget configuration
+        function clearWidget(dashboardId, widgetId, ctype) {
+            return $http.post(dashboardRoute + '/' + dashboardId + '/clearwidget/' + widgetId ,ctype)
+                .then(function (response) {
+                    return response.data;
             });
         }
 
@@ -200,92 +198,6 @@
                     return null;
                 });
         }
-
-        // can be used to delete existing widget
-        function deleteWidget(dashboardId, widget) {
-            widget = angular.copy(widget);
-            console.log('Delete widget config', widget);
-            var widgetId = widget.id;
-            if (widgetId) {
-                // remove the id since that would cause an api failure
-                delete widget.id;
-            }
-            var route = $http.put(dashboardRoute + '/' + dashboardId + '/deleteWidget/' + widgetId, widget) ;
-            return route.success(function (response) {
-                return response.data;
-            }).error(function (response) {
-                return null;
-            });
-
-        }
-
-        // gets count of all dashboards
-        function count() {
-            return getPromise(HygieiaConfig.local ? testSearchRoute : dashboardCountRoute);
-        }
-
-        // gets list of dashboards according to page size (default = 10)
-        function searchByPage(params) {
-            return  $http.get(HygieiaConfig.local ? testSearchRoute : dashboardRoutePage,{params: params}).then(function (response) {
-                return response.data;
-            });
-        }
-
-        // gets list of dashboards filtered by title with page size (default = 10)
-        function filterByTitle(params) {
-            return  $http.get(HygieiaConfig.local ? testSearchRoute : dashboardFilterRoutePage,{params: params}).then(function (response) {
-                return response.data;
-            });
-        }
-
-        //gets count of filtered dashboards for pagination
-        function filterCount(title){
-            return  $http.get(HygieiaConfig.local ? testSearchRoute : dashboardFilterCountRoute+ '/'+title).then(function (response) {
-                return response.data;
-            });
-        }
-
-        // gets page size
-        function getPageSize() {
-            return getPromise(HygieiaConfig.local ? testSearchRoute : dashboardPageSize);
-        }
-
-        // gets count of all my dashboards
-        function myDashboardsCount() {
-            return getPromise(HygieiaConfig.local ? testSearchRoute : myDashboardCountRoute);
-        }
-
-        // gets list of my dashboards according to page size (default = 10)
-        function searchMyDashboardsByPage(params) {
-            return  $http.get(HygieiaConfig.local ? testSearchRoute : myDashboardRoutePage,{params: params}).then(function (response) {
-                return response.data;
-            });
-        }
-
-        // gets list of my dashboards filtered by title with page size (default = 10)
-        function filterMyDashboardsByTitle(params) {
-            return  $http.get(HygieiaConfig.local ? testSearchRoute : myDashboardFilterRoutePage,{params: params}).then(function (response) {
-                return response.data;
-            });
-        }
-
-        //gets count of filtered dashboards for pagination
-        function filterMyDashboardCount(title){
-            return  $http.get(HygieiaConfig.local ? testSearchRoute : myDashboardFilterCountRoute+ '/'+title).then(function (response) {
-                return response.data;
-            });
-        }
-
-        function updateDashboardScoreSettings(id, scoreEnabled, scoreDisplay) {
-            return $http.put(updateDashboardScoreSettingsRoute + "/" + id + "?scoreEnabled=" + scoreEnabled + "&scoreDisplay=" + scoreDisplay)
-                .success(function (response) {
-                    return response.data;
-                })
-                .error(function (response) {
-                    return null;
-                });
-        }
-
 
     }
 })();

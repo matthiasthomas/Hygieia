@@ -111,6 +111,7 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		mockV1Feature.setsSprintIsDeleted("False");
 		mockV1Feature.setsSprintName("Test Sprint 1");
 		mockV1Feature.setsState("Inactive");
+		mockV1Feature.setsSource("SPT");
 		mockV1Feature.setsStatus("Accepted");
 		mockV1Feature.setsTeamAssetState("Active");
 		mockV1Feature.setsTeamChangeDate(generalUseDate);
@@ -164,6 +165,7 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		mockJiraFeature.setsTeamAssetState("Active");
 		mockJiraFeature.setsTeamChangeDate(maxDateWinner);
 		mockJiraFeature.setsTeamID("08374321");
+		mockJiraFeature.setsSource("SPT");
 		mockJiraFeature.setsTeamIsDeleted("False");
 		mockJiraFeature.setsTeamName("Saiya-jin Warriors");
 
@@ -212,6 +214,7 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		mockJiraFeature2.setsTeamAssetState("Active");
 		mockJiraFeature2.setsTeamChangeDate(maxDateLoser);
 		mockJiraFeature2.setsTeamID("08374329");
+		mockJiraFeature2.setsSource("SPT");
 		mockJiraFeature2.setsTeamIsDeleted("False");
 		mockJiraFeature2.setsTeamName("Interlopers");
 
@@ -256,6 +259,7 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		mockJiraFeature3.setsSprintIsDeleted("False");
 		mockJiraFeature3.setsSprintName("Test Sprint 3");
 		mockJiraFeature3.setsState("Active");
+		mockJiraFeature3.setsSource("SPT");
 		mockJiraFeature3.setsStatus("In Progress");
 		mockJiraFeature3.setsTeamAssetState("Active");
 		mockJiraFeature3.setsTeamChangeDate(maxDateLoser);
@@ -279,6 +283,7 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		mockJiraFeature4.setsEpicType("");
 		mockJiraFeature4.setsEstimate("45");
 		mockJiraFeature4.setsId("0812344");
+		mockJiraFeature4.setsSource("SPT");
 		mockJiraFeature4.setsName("Test Story 4");
 		mockJiraFeature4.setsNumber("12345414");
 		mockJiraFeature4.setsOwnersChangeDate(sOwnerDates);
@@ -356,8 +361,8 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 				"Expected feature max change date did not match actual feature max change date",
 				maxDateWinner,
 				featureRepo
-						.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-								jiraCollectorId, maxDateLoser).get(0).getChangeDate().toString());
+						.findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+								jiraCollectorId, "SPT" ,maxDateLoser).get(0).getChangeDate().toString());
 	}
 
 	@Test
@@ -392,18 +397,18 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		assertEquals(
 				"Actual size should result in a size of 0",
 				0,
-				featureRepo.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-						jiraCollectorId, maxDateWinner).size());
+				featureRepo.findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+						jiraCollectorId,"SPT" ,maxDateWinner).size());
 		assertEquals(
 				"Actual size should result in a size of 0",
 				0,
-				featureRepo.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-						jiraCollectorId, biggerThanWinner).size());
+				featureRepo.findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+						jiraCollectorId,"SPT" , biggerThanWinner).size());
 		assertEquals(
 				"Actual size should result in a size of 1",
 				1,
-				featureRepo.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-						jiraCollectorId, smallerThanWinner).size());
+				featureRepo.findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+						jiraCollectorId,"SPT", smallerThanWinner).size());
 	}
 
 	@Test
@@ -416,17 +421,17 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		
 		assertTrue(
 				"Actual size should result in a size of 1",
-				featureRepo.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-						jiraCollectorId, "2015-10-01T00:00:00Z").size() == 1);
+				featureRepo.findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+						jiraCollectorId, "SPT", "2015-10-01T00:00:00Z").size() == 1);
 		assertTrue(
 				"Actual size should result in a size of 0",
-				featureRepo.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-						jiraCollectorId, maxDateWinner).size() == 0);
+				featureRepo.findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+						jiraCollectorId, "SPT", maxDateWinner).size() == 0);
 		assertTrue(
 				"Expected response of the maximum change date did not match the actual match change date",
 				featureRepo
-						.findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-								jiraCollectorId, maxDateLoser).get(0).getChangeDate().toString()
+						.findTopByCollectorIdAndSSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+								jiraCollectorId, "SPT", maxDateLoser).get(0).getChangeDate().toString()
 						.equalsIgnoreCase(maxDateWinner));
 	}
 
@@ -441,7 +446,7 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 
 		assertEquals(
 				"Expected top ordered sprint story ID did not match actual top ordered sprint story ID",
-				testStoryId, featureRepo.findByActiveEndingSprints(testTeamID, testProjectID, jiraCollectorId, maxDateWinner, false)
+				testStoryId, featureRepo.findByActiveEndingSprints(testTeamID, testProjectID, jiraCollectorId, maxDateWinner, false,"Jira")
 						.get(0).getsId().toString());
 	}
 
@@ -454,7 +459,7 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 		String testProjectID = "583482";
 		String testSprintName = "Test Sprint 2";
 		assertEquals("Expected current sprint detail did not match actual current sprint detail",
-				testSprintName, featureRepo.findByActiveEndingSprints(testTeamId, testProjectID, jiraCollectorId, maxDateWinner, true)
+				testSprintName, featureRepo.findByActiveEndingSprints(testTeamId, testProjectID, jiraCollectorId, maxDateWinner, true,"Jira")
 						.get(0).getsSprintName());
 	}
 
@@ -469,6 +474,6 @@ public class FeatureRepositoryTest extends FongoBaseRepositoryTest {
 				"The size of the actual response was not expected",
 				3,
 				featureRepo.findByActiveEndingSprints(mockJiraFeature3.getsTeamID(), mockJiraFeature3.getsProjectID(), jiraCollectorId,
-						currentSprintEndDate, true).size());
+						currentSprintEndDate, true,"Jira").size());
 	}
 }

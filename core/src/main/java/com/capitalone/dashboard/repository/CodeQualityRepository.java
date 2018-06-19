@@ -2,9 +2,8 @@ package com.capitalone.dashboard.repository;
 
 import com.capitalone.dashboard.model.CodeQuality;
 
-import java.util.List;
-
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
@@ -18,20 +17,12 @@ public interface CodeQualityRepository extends CrudRepository<CodeQuality, Objec
      * {@link com.capitalone.dashboard.model.CollectorItem}.
      *
      * @param collectorItemId collector item id
-     * @param timestamp timestamp
+     * @param timestamp timstamp
      * @return a {@link CodeQuality}
      */
     CodeQuality findByCollectorItemIdAndTimestamp(ObjectId collectorItemId, long timestamp);
+    CodeQuality findByCollectorItemId(ObjectId collectorItemId);
+    @Query(value = "{ 'type' : ?0}",delete = true)
+    void deleteByType(String type);
     
-    List<CodeQuality> findByCollectorItemIdAndVersionOrderByTimestampDesc (ObjectId collectorItemId,String version);
-
-    List<CodeQuality> findByCollectorItemIdAndNameAndVersionOrderByTimestampDesc (ObjectId collectorItemId,String name,String version);
-    
-    List<CodeQuality> findByCollectorItemIdOrderByTimestampDesc (ObjectId collectorItemId);
-    
-    List<CodeQuality> findByNameAndVersion(String name,String version);
-
-    List<CodeQuality> findByNameAndVersionOrderByTimestampDesc(String name,String version);
-
-    List<CodeQuality> findByCollectorItemIdAndTimestampIsBetweenOrderByTimestampDesc(ObjectId collectorItemId, long beginDate, long endDate);
 }

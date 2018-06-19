@@ -1,6 +1,7 @@
 package com.capitalone.dashboard.model;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Base class to represent the details of a change in a source code management
@@ -13,11 +14,11 @@ public class SCM {
     protected String scmCommitLog;
     protected String scmAuthor;
     protected String scmAuthorLogin;
+    protected String scmAuthorLoginFinal;
     protected List<String> scmParentRevisionNumbers;
     protected long scmCommitTimestamp;
     protected long numberOfChanges;
     protected CommitType type;
-    protected String pullNumber;
 
     public SCM(){
 
@@ -98,6 +99,14 @@ public class SCM {
         this.scmAuthorLogin = scmAuthorLogin;
     }
     
+    public String setScmAuthorLoginFinal() {    	
+        return scmAuthorLoginFinal;
+    }
+    
+    public String getScmAuthorLoginFinal() {    	
+        return (scmAuthorLogin!=null && !scmAuthorLogin.trim().equals(""))?scmAuthorLogin.toLowerCase(Locale.US):(scmAuthor+"").toLowerCase(Locale.US);
+    }
+    
     // can return null
     public List<String> getScmParentRevisionNumbers() {
     	return scmParentRevisionNumbers;
@@ -129,13 +138,5 @@ public class SCM {
 
     public void setType(CommitType type) {
         this.type = type;
-    }
-
-    public String getPullNumber() {
-        return pullNumber;
-    }
-
-    public void setPullNumber(String pullNumber) {
-        this.pullNumber = pullNumber;
     }
 }

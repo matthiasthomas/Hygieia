@@ -39,7 +39,10 @@
         }
 
         $scope.widgets = {};
-        ctrl.widgets = widgetManager.getWidgets();
+        var tempWidgets = widgetManager.getWidgets();
+        delete tempWidgets["aggregate"];
+        delete tempWidgets["project"];
+        ctrl.widgets = tempWidgets;
 
         $scope.options = {
             cellHeight: 200,
@@ -87,10 +90,8 @@
                 type: ctrl.createDashboardData.type,
                 applicationName: ctrl.createDashboardData.applicationName,
                 componentName: ctrl.createDashboardData.componentName,
-                configurationItemBusServName: ctrl.createDashboardData.configurationItemBusServName,
-                configurationItemBusAppName: ctrl.createDashboardData.configurationItemBusAppName,
-                scoreEnabled : ctrl.createDashboardData.scoreEnabled,
-                scoreDisplay : ctrl.createDashboardData.scoreDisplay,
+                configurationItemBusServObjectId: ctrl.createDashboardData.configurationItemBusServObjectId,
+                configurationItemBusAppObjectId: ctrl.createDashboardData.configurationItemBusAppObjectId,
                 activeWidgets: widgets
             };
 
@@ -108,14 +109,17 @@
                         if (data.errorCode === 401) {
                             $modalInstance.close();
                         } else if (data.errorCode === -13) {
-
                             if (data.errorMessage) {
                                 ctrl.dupErroMessage = data.errorMessage;
                             }
-
+                            
                             form.configurationItemBusServ.$setValidity('dupBusServError', false);
-                            form.configurationItemBusApp.$setValidity('dupBusAppError', false);
+                            form.configurationItemBusApp.$setValidity('dupBusAppError', false);                            
 
+                        } else if (data.errorCode === -15) {
+                            if (data.errorMessage) {
+                                ctrl.dupErroMessage = "Dashboard already exists with the title as \"" +ctrl.createDashboardData.title +"\".";
+                            }
                         } else {
                             form.dashboardTitle.$setValidity('createError', false);
                         }

@@ -1,13 +1,20 @@
 package com.capitalone.dashboard.repository;
 
-import com.capitalone.dashboard.model.Incident;
+
+import java.util.List;
+
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
+import com.capitalone.dashboard.model.IncidentDetails;
 /**
- * Repository for {@link Incident} data.
+ * Repository for {@link IncidentDetails}.
  */
+public interface IncidentRepository extends CrudRepository<IncidentDetails, ObjectId>, QueryDslPredicateExecutor<IncidentDetails> {
+	
+	@Query(value = "{'assignmentGroup' : {$exists: true, $eq: ?0} }", delete = true)
+	List<IncidentDetails> deleteIncident(String assignmentGroup);
 
-public interface IncidentRepository extends CrudRepository<Incident, ObjectId> {
-    Incident findByIncidentID(String incidentID);
 }

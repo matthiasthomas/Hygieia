@@ -9,8 +9,8 @@
         .controller('AdminController', AdminController);
 
 
-    AdminController.$inject = ['$scope', 'dashboardData', '$location', '$uibModal', 'userService', 'authService', 'userData', 'dashboardService', 'templateMangerData', 'paginationWrapperService'];
-    function AdminController($scope, dashboardData, $location, $uibModal, userService, authService, userData, dashboardService, templateMangerData, paginationWrapperService) {
+    AdminController.$inject = ['$scope', 'dashboardData', '$location', '$uibModal', 'userService', 'authService', 'userData', 'dashboardService', 'templateMangerData'];
+    function AdminController($scope, dashboardData, $location, $uibModal, userService, authService, userData, dashboardService, templateMangerData) {
         var ctrl = this;
         if (userService.isAuthenticated() && userService.isAdmin()) {
             $location.path('/admin');
@@ -35,11 +35,6 @@
         ctrl.editTemplate = editTemplate;
         ctrl.deleteToken = deleteToken;
         ctrl.editToken = editToken;
-
-        ctrl.pageChangeHandler = pageChangeHandler;
-        ctrl.totalItems = totalItems;
-        ctrl.currentPage = currentPage;
-        ctrl.pageSize = pageSize;
 
         $scope.tab = "dashboards";
 
@@ -67,36 +62,20 @@
             ctrl.theme = localStorage.getItem('theme');
         }
 
+
         // ctrl.dashboards = []; don't default since it's used to determine loading
 
         // public methods
         ctrl.deleteDashboard = deleteDashboard;
         ctrl.applyTheme = applyTheme;
 
+
         // request dashboards
-        dashboardData.search().then(processResponse);
+        dashboardData.search(ctrl.username,ctrl.authType).then(processResponse);
         userData.getAllUsers().then(processUserResponse);
         userData.apitokens().then(processTokenResponse);
         templateMangerData.getAllTemplates().then(processTemplateResponse);
 
-        function pageChangeHandler(pageNumber) {
-            paginationWrapperService.pageChangeHandler(pageNumber)
-                .then(function() {
-                    ctrl.dashboards = paginationWrapperService.getDashboards();
-                });
-        }
-
-        function totalItems() {
-            return paginationWrapperService.getTotalItems();
-        }
-
-        function currentPage() {
-            return paginationWrapperService.getCurrentPage();
-        }
-
-        function pageSize() {
-            return paginationWrapperService.getPageSize();
-        }
 
         //implementation of logout
         function logout() {
@@ -120,7 +99,6 @@
             dashboardData.delete(id).then(function () {
                 _.remove(ctrl.dashboards, {id: id});
             });
-            paginationWrapperService.calculateTotalItems();
         }
 
         function editDashboard(item) {
@@ -138,14 +116,15 @@
             });
 
             mymodalInstance.result.then(function success() {
-                dashboardData.search().then(processResponse);
+                dashboardData.searchAll().then(processResponse);
                 userData.getAllUsers().then(processUserResponse);
                 userData.apitokens().then(processTokenResponse);
                 templateMangerData.getAllTemplates().then(processTemplateResponse);
             });
-        }
 
-        function editToken(item) {
+        }
+        function editToken(item)
+        {
             console.log("Edit token in Admin");
 
             var mymodalInstance=$uibModal.open({
@@ -162,14 +141,13 @@
             mymodalInstance.result.then(function() {
                 userData.apitokens().then(processTokenResponse);
             });
-        }
 
+        }
         function deleteToken(id) {
             userData.deleteToken(id).then(function() {
                 _.remove( $scope.apitokens , {id: id});
             });
         }
-
         function generateToken() {
             console.log("Generate token in Admin");
 
@@ -183,10 +161,22 @@
             mymodalInstance.result.then(function (condition) {
                 window.location.reload(false);
             });
+
         }
 
         function processResponse(data) {
-            ctrl.dashboards = paginationWrapperService.processDashboardResponse(data);
+            ctrl.dashboards = [];
+            for (var x = 0; x < data.length; x++) {
+                ctrl.dashboards.push({
+                    id: data[x].id,
+                    name: dashboardService.getDashboardTitle(data[x]),
+                    type: data[x].type,
+                    validServiceName: data[x].validServiceName,
+                    validAppName: data[x].validAppName,
+                    configurationItemBusServName: data[x].configurationItemBusServName,
+                    configurationItemBusAppName: data[x].configurationItemBusAppName,
+                });
+            }
         }
 
         function processUserResponse(response) {
@@ -230,7 +220,7 @@
             });
 
             mymodalInstance.result.then(function success() {
-                dashboardData.search().then(processResponse);
+                dashboardData.searchAll().then(processResponse);
                 userData.getAllUsers().then(processUserResponse);
                 userData.apitokens().then(processTokenResponse);
                 templateMangerData.getAllTemplates().then(processTemplateResponse);
@@ -241,7 +231,7 @@
         function deleteTemplate(item) {
             var id = item.id;
             var dashboardsList = [];
-            dashboardData.search().then(function (response) {
+            dashboardData.searchAll().then(function (response) {
                 _(response).forEach(function (dashboard) {
                     if (dashboard.template == item.template) {
                         dashboardsList.push(dashboard.title);
@@ -294,6 +284,9 @@
 
         $scope.navigateToTab = function (tab) {
             $scope.tab = tab;
+            if(tab === 'manageusers'){
+            	loadManageUserGrid();
+            }
         }
 
         $scope.isActiveUser = function (user) {
@@ -326,5 +319,109 @@
                 }
             );
         }
+
+        ctrl.userQuery = "";
+        ctrl.pageSizes = [5, 10, 20];
+        ctrl.pgOptions = {
+        	first: false,
+        	last: false,
+            pageNumber: 1,
+            pageSize: 5,
+            totalElements: null,
+            totalPages: null,
+            sort: null
+        };
+
+        function paginationInit() {
+        	ctrl.pageNumber = 1;
+        }
+
+        paginationInit();
+
+        //Model for new option 'Manage Users'
+        function loadManageUserGrid() {
+        	userData.searchWithPagination(ctrl.pageNumber, ctrl.pgOptions.pageSize, ctrl.userQuery).then(updateGrid);
+        }
+
+        function updateGrid(results) {
+        	ctrl.allUsersData = results.data.content;
+        	ctrl.pageNumber = ctrl.pgOptions.pageNumber = results.data.number;
+        	ctrl.pgOptions.pageSize = results.data.size;
+			ctrl.pgOptions.totalElements = results.data.totalElements;
+			ctrl.pgOptions.totalPages = results.data.totalPages;
+        }
+
+        function deleteUser(userDataObj) {
+			userData.deleteUser(userDataObj.id).then(function(response) {
+				loadManageUserGrid();
+			}, function(response) {
+				if(response.data && response.data.responseMessage && typeof response.data.responseMessage === 'string'){
+					swal(response.data.responseMessage);
+				} else if(response.data && typeof response.data === 'string'){
+					swal(response.data);
+				} else {
+					swal('An error occurred while deleting the user, try again later.');
+				}
+				//console.log(response);
+			});
+        }
+
+        function editUser(userData) {
+        	console.log(userData);
+            var modalInstance = $uibModal.open({
+                templateUrl: 'app/dashboard/views/createUser.html',
+                controller: 'createUserController',
+                controllerAs: 'ctrl',
+                resolve: {
+                    userInfo: function() {
+                        return userData;
+                    }
+                }
+            });
+            modalInstance.result.then(function success(message) {
+            	loadManageUserGrid();
+            }, function(response) {
+				if(response.data && response.data.responseMessage && typeof response.data.responseMessage === 'string'){
+					swal(response.data.responseMessage);
+				} else if(response.data && typeof response.data === 'string'){
+					swal(response.data);
+				} else {
+					swal('An error occurred while deleting the user, try again later.');
+				}
+				//console.log(response);
+			});
+        }
+
+        function createUser () {
+            var modalInstance = $uibModal.open({
+                templateUrl: 'app/dashboard/views/createUser.html',
+                controller: 'createUserController',
+                controllerAs: 'ctrl',
+                resolve: {
+                    userInfo: function() {
+                        return null;
+                    }
+                }
+            });
+            modalInstance.result.then(function success(message) {
+            	loadManageUserGrid();
+            }, function(response) {
+            	if(response.data && response.data.responseMessage && typeof response.data.responseMessage === 'string'){
+					swal(response.data.responseMessage);
+				} else if(response.data && typeof response.data === 'string'){
+					swal(response.data);
+				} else {
+					swal('An error occurred while deleting the user, try again later.');
+				}
+            	//console.log(response);
+			});
+        }
+
+        ctrl.paginationInit = paginationInit;
+        //Model for new option 'Manage Users'
+        ctrl.loadManageUserGrid = loadManageUserGrid;
+        ctrl.deleteUser = deleteUser;
+        ctrl.editUser = editUser;
+        ctrl.createUser = createUser;
     }
 })();

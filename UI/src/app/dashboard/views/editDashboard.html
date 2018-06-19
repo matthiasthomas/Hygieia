@@ -55,6 +55,7 @@
                                     typeahead-focus
                                     typeahead-min-length="0"
                                     typeahead-editable="false"
+                                    typeahead-on-select="ctrl.setConfigItemAppId(ctrl.configurationItemBusServ.id)"
                                     typeahead-no-results="noResults" />
                             <div class="form-control" ng-show="noResults">
                                 No Results Found
@@ -74,6 +75,7 @@
                                     typeahead-focus
                                     typeahead-min-length="0"
                                     typeahead-editable="false"
+                                    typeahead-on-select="ctrl.setConfigItemComponentId(ctrl.configurationItemBusApp.id)"
                                     typeahead-no-results="noResults" />
                             <div class="form-control" ng-show="noResults">
                                 No Results Found
@@ -146,7 +148,7 @@
             </div>
         </div>
 
-        <div class="container-fluid" ng-if="ctrl.tabView == 'Widget Management'">
+        <div class="container-fluid" ng-if="ctrl.tabView == 'Widget Management' && ctrl.dashboardTemplate !=='widgets'">
             <div class="row">
                 <div class="col-xs-12 gap">
                     <label class="modal-label">Add/Remove Widgets</label>
@@ -169,16 +171,47 @@
                 </div>
             </div>
         </div>
-        <div class="container-fluid" ng-if="ctrl.tabView == 'Score'">
-            <div class="row">
-                <div class="col-xs-12 gap">
-                    <form name="scoreSettingsForm">
-                        <score-settings ng-model="ctrl.scoreSettings"></score-settings>
+
+        <div class="container-fluid" ng-if="ctrl.tabView == 'Widget Management' && ctrl.dashboardTemplate === 'widgets'">
+            <label class="modal-label move-widget-header">Add/Remove Widgets</label>
+            <div class="move-widget-container">
+                <div class="widget-toggle-container">
+                    <form name="editForm">
+                        <ul class="list-animate list-group text-left">
+                            <li class="list-group-item" ng-repeat="(title,enabled) in ctrl.widgetSelections"
+                                ng-class="{'active': ctrl.widgetSelections[title] == true}"
+                                ng-if="title!='product' && title!='monitor2' && title!='undefined'">
+                                <input type="checkbox" id="{{'widgetSelections-' + title}}" name="{{'widgetSelections-' + title}}" ng-disabled="ctrl.selectWidgetsDisabled" ng-model="ctrl.widgetSelections[title]" ng-change="ctrl.toggleWidget(title)">
+                                <label for="{{'widgetSelections-' + title}}">{{ ctrl.widgets[title].view.defaults.title ? ctrl.widgets[title].view.defaults.title : title}}</label>
+                            </li>
+
+                        </ul>
                     </form>
+                </div>
+                <div class="gui-view">
+                    <br>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div gridstack class="grid-stack grid-stack-3" options="options" on-change="ctrl.onChange(event,items)" on-drag-start="ctrl.onDragStart(event,ui)" on-drag-stop="ctrl.onDragStop(event,ui)">
+                                <div gridstack-item ng-repeat="(title, w) in widgets" class="grid-stack-item" gs-item-x="w.x" gs-item-y="w.y"
+                                     gs-item-width="w.width" gs-item-height="w.height" gs-item-autopos="1" id="{{'gs-item-' + title}}">
+                                    <div class="grid-stack-item-content widget">
+                                        <div class="widget-body-config">
+                                            <div>
+                                                <div class="fa fa-cog fa-lg"></div>
+                                                <div>{{ ctrl.widgets[title].view.defaults.title ? ctrl.widgets[title].view.defaults.title : title}}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
                 </div>
             </div>
             <div class="button-row row text-center">
-                <button type="submit" class="btn btn-primary btn-wide" ng-click="ctrl.submitScoreSettings(scoreSettingsForm)">Save
+                <button type="submit" class="btn btn-primary btn-wide" ng-click="ctrl.saveWidgets(editForm)" ng-disabled="ctrl.selectWidgetsDisabled">Save
                 </button>
             </div>
         </div>

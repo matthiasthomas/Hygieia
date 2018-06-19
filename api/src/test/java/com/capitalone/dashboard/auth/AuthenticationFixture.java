@@ -39,7 +39,7 @@ public class AuthenticationFixture {
 
 	public static String getJwtToken(String username, String secret, long expirationTime) {
 		Authentication authentication = getAuthentication(username);
-		Collection<UserRole> authorities = Sets.newHashSet(UserRole.ROLE_ADMIN, UserRole.ROLE_USER);
+		Collection<UserRole> authorities = Sets.newHashSet(UserRole.ROLE_ADMIN, UserRole.ROLE_MANAGER, UserRole.ROLE_USER);
 		return Jwts.builder().setSubject(authentication.getName())
 		.claim(DETAILS_CLAIM, authentication.getDetails())
 		.claim(ROLES_CLAIM, authorities)

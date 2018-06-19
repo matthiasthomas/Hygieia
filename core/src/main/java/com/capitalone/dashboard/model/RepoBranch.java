@@ -4,6 +4,9 @@ package com.capitalone.dashboard.model;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
+
 public class RepoBranch {
     private String url = "";
     private String branch = "";
@@ -80,6 +83,9 @@ public class RepoBranch {
             URL temp = new URL(url);
             return temp.getHost() + temp.getPath();
         } catch (MalformedURLException e) {
+			ApplicationDBLogger.log(HygieiaConstants.GITHUB_COLLECTOR,
+					"RepoBranch.getRepoName", e.getMessage(),
+					e);
             return url;
         }
 

@@ -5,6 +5,7 @@ package com.capitalone.dashboard.model;
  */
 public enum DashboardType {
     Product,
+    Aggregate,
     Team;
 
     public static DashboardType fromString(String value){

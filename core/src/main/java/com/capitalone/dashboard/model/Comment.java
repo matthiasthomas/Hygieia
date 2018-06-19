@@ -5,7 +5,6 @@ public class Comment {
     private long createdAt;
     private long updatedAt;
     private String body;
-    private String status;
 
     public String getUser() {
         return user;
@@ -37,13 +36,5 @@ public class Comment {
 
     public void setBody(String body) {
         this.body = body;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 }

@@ -10,7 +10,7 @@ import com.capitalone.dashboard.model.Component;
 import com.capitalone.dashboard.model.Dashboard;
 import com.capitalone.dashboard.model.DashboardType;
 import com.capitalone.dashboard.model.Owner;
-import com.capitalone.dashboard.model.ScoreDisplayType;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
@@ -27,16 +27,9 @@ public class DashboardRequest {
 
     private String componentName;
 
-    private String configurationItemBusServName;
+    private ObjectId configurationItemBusServObjectId;
 
-    private String configurationItemBusAppName;
-
-    //Enable/Disable scoring for the dashboard
-    //Disabled by default. It can be enabled when dashboard type is Team
-    private boolean scoreEnabled = false;
-
-    //Display position for score.
-    private String scoreDisplay;
+    private ObjectId configurationItemBusAppObjectId;
 
     @NotNull
     @Size(min=1, message="Please select a type")
@@ -86,20 +79,20 @@ public class DashboardRequest {
 
     public void setType(String type) { this.type = type; }
 
-    public String getConfigurationItemBusServName() {
-        return configurationItemBusServName;
+    public ObjectId getConfigurationItemBusServObjectId() {
+        return configurationItemBusServObjectId;
     }
 
-    public void setConfigurationItemBusServName(String configurationItemBusServName) {
-        this.configurationItemBusServName = configurationItemBusServName;
+    public void setConfigurationItemBusServObjectId(ObjectId configurationItemBusServObjectId) {
+        this.configurationItemBusServObjectId = configurationItemBusServObjectId;
     }
 
-    public String getConfigurationItemBusAppName() {
-        return configurationItemBusAppName;
+    public ObjectId getConfigurationItemBusAppObjectId() {
+        return configurationItemBusAppObjectId;
     }
 
-    public void setConfigurationItemBusAppName(String configurationItemBusAppName) {
-        this.configurationItemBusAppName = configurationItemBusAppName;
+    public void setConfigurationItemBusAppObjectId(ObjectId configurationItemBusAppObjectId) {
+        this.configurationItemBusAppObjectId = configurationItemBusAppObjectId;
     }
 
     public List<String> getActiveWidgets() {
@@ -110,38 +103,11 @@ public class DashboardRequest {
         this.activeWidgets = activeWidgets;
     }
 
-    public boolean isScoreEnabled() {
-        return scoreEnabled;
-    }
-
-    public void setScoreEnabled(boolean scoreEnabled) {
-        this.scoreEnabled = scoreEnabled;
-    }
-
-    public String getScoreDisplay() {
-        return scoreDisplay;
-    }
-
-    public void setScoreDisplay(String scoreDisplay) {
-        this.scoreDisplay = scoreDisplay;
-    }
-
     public Dashboard toDashboard() {
         DashboardType type = DashboardType.fromString(this.type);
         Application application = new Application(applicationName, new Component(componentName));
         Owner owner = new Owner(AuthenticationUtil.getUsernameFromContext(), AuthenticationUtil.getAuthTypeFromContext());
-        return new Dashboard(
-          template,
-          dashboardRequestTitle.getTitle(),
-          application,
-          owner,
-          type ,
-          configurationItemBusServName,
-          configurationItemBusAppName,
-          activeWidgets,
-          scoreEnabled,
-          ScoreDisplayType.fromString(scoreDisplay)
-        );
+        return new Dashboard(template, dashboardRequestTitle.getTitle(), application, owner, type , configurationItemBusServObjectId, configurationItemBusAppObjectId,activeWidgets);
 
 
     }

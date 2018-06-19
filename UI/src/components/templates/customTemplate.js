@@ -27,9 +27,11 @@
         var ctrl = this;
 
         ctrl.tabs = [
-            {name: "Widget"},
+            {name: "Widget"}
+            //HYG-98: Removing tabs
+            /*,
             {name: "Pipeline"},
-            {name: "Cloud"}
+            {name: "Cloud"}*/
         ];
 
 
@@ -56,11 +58,6 @@
                 });
                 ctrl.widgetDisplay = widgetObj;
                 ctrl.sortOrder = response.order;
-                //Check in parent controller if score is enabled
-                //Push to the top of display
-                if ($scope.ctrl.scoreWidgetEnabled) {
-                    ctrl.sortOrder.unshift('score');
-                }
                 ctrl.widgetsOrder = chunk(ctrl.sortOrder,3);
             });
         };

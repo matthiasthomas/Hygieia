@@ -47,9 +47,10 @@
             var applicationName = data.application.name ? "-" + data.application.name : "" ;
 
             if(businessServiceName != "" || businessApplicationName != "" ){
-               title = title +  businessServiceName + businessApplicationName;
+            	title = title +  businessServiceName + businessApplicationName;
             }else{
-               title = title + applicationName;
+               // Commented to not to show application name for the dashboards
+               //title = title + applicationName;
             }
 
             return title;

@@ -1,6 +1,7 @@
 package com.capitalone.dashboard.repository;
 
 import com.capitalone.dashboard.model.Build;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
@@ -26,4 +27,7 @@ public interface BuildRepository extends CrudRepository<Build, ObjectId>, QueryD
     List<Build> findBuildsForRevisionNumbersAndBuildCollectorItemIds(List<String> scmRevisionNumbers, List<ObjectId> buildCollectorItemId);
 
     Build findTop1ByCollectorItemIdOrderByTimestampDesc(ObjectId collectorItemId);
+    
+    @Query(value="{ 'collectorItemId': ?0, 'endTime': { $gte: ?1 }}")
+    List<Build> findByCollectorItemIdAndEndTimeStamp(ObjectId collectorItemid, Long endTimestamp);
 }

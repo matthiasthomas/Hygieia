@@ -11,11 +11,21 @@
         .animate-appear();
     }
 
+    .filter-container {
+        display: inline-block;
+        width: 30%;
+        min-width: 100%;
+        margin-right: 20px;
+    }
+
     .dashboard-type-list {
-        width: 100%;
+        width: 60%;
+        margin: auto;
+        min-width: 570px;
+        vertical-align: top;
 
         .btn {
-            width: 33.333%;
+            width: 33.33%;
             text-overflow: ellipsis;
             overflow: hidden;
             .transition(~"color .2s linear, background-color .2s linear");
@@ -23,17 +33,82 @@
     }
 
     .create-dashboard-button {
-        margin-bottom: 2.5em;
+        margin-top: 2.5em;
+        margin-bottom: 0.5em;
     }
 
-    .word-overflow-wrap {
-        word-wrap: break-word;
+    .widget-modal .pull-right .fa {
+        font-size: 1.6em;
+        margin-right: 10px;
+    }
+    
+    .btn-create-dashboard {
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        border-radius: 50%;
+        margin: 2px;
+        padding: 0;
+        font-size: 21px;
+        cursor: pointer !important;
+    }
+
+    .create-dashboard-container {
+        position: fixed;
+        /* background: #ff000024; */
+        bottom: 8%;
+        right: 8%;
+        padding: 2px;
+        z-index: 1;
+        color: #FFF;
+    }
+
+    .lbl-dashboard-type {
+        text-transform: capitalize;
+    }
+
+    .widget-modal .create-dashboard-container .fa{
+        color: #FFF;
+    }
+
+    .create-dashboard-container .create-dashboard-button {
+        margin: 0 !important;
+        position: absolute;
+        right: 110%;
+        top: 18px;
+    }
+    
+    .widget-modal .create-dashboard-container .fa {
+        transition: 0.2s ease transform;
+    }
+
+    .widget-modal .create-dashboard-container .active .fa {
+        transform: rotate(45deg);
+    }
+
+    .create-dashboard-container .create-dashboard-button {
+        transition: 0.2s ease all;
+        width: 10px;
+        font-size: 0px;
+        height: 34px;
+        line-height: 20px;
+    }
+
+    .active ~ .create-dashboard-button {
+        width: 180px;
+        font-size: 14px;
     }
 }
 
 @media(min-width: @screen-sm-min) {
-    .create-dashboard-button {
-        margin-top: 2.5em;
-        margin-bottom: 0;
+    #site {
+        .filter-container {
+            min-width: 380px;
+        }
+        .create-dashboard-button {
+            margin: 0;
+            top: -3px;
+            position: relative;
+        }
     }
 }

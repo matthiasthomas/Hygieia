@@ -41,16 +41,11 @@
             { name: "Dashboard Title"},
             { name: "Business Service/ Application"},
             { name: "Owner Information"},
-            { name: "Widget Management"},
-            { name: "Score"}
+            { name: "Widget Management"}
 
         ];
         ctrl.tabView = ctrl.tabs[0].name;
         ctrl.activeWidgets = [];
-        ctrl.scoreSettings = {
-            scoreEnabled : !!dashboardItem.scoreEnabled,
-            scoreDisplay : dashboardItem.scoreDisplay
-        };
 
         // public methods
         ctrl.submit = submit;
@@ -64,8 +59,6 @@
         ctrl.isValidBusServName = isValidBusServName;
         ctrl.isValidBusAppName = isValidBusAppName;
         ctrl.saveWidgets = saveWidgets;
-        ctrl.onConfigurationItemBusAppSelect = onConfigurationItemBusAppSelect;
-        ctrl.submitScoreSettings = submitScoreSettings;
 
         ctrl.validBusServName = isValidBusServName();
         ctrl.validBusAppName = isValidBusAppName();
@@ -73,6 +66,56 @@
 
         ctrl.username = userService.getUsername();
         ctrl.authType = userService.getAuthType();
+
+        $scope.options = {
+            width : 3,
+            cellHeight: 120,
+            verticalMargin: 10,
+            disableResize : true
+        };
+
+        $scope.widgets = {};
+        var tempWidgets = widgetManager.getWidgets();
+        delete tempWidgets["aggregate"];
+        delete tempWidgets["project"];
+        ctrl.widgets = tempWidgets;
+        ctrl.toggleWidget = toggleWidget;
+
+        function toggleWidget(widget, $event) {
+            if (widget in $scope.widgets) {
+                removeWidget(widget);
+            }else{
+                addWidget(widget);
+            }
+        }
+
+        function addWidget(widgetTitle) {
+            var newWidget = { x:0, y:0, width:1, height:1, widgetName: widgetTitle, order :ctrl.count++ };
+            $scope.widgets[widgetTitle] = newWidget;
+        };
+
+        function removeWidget(title, $event) {
+            if ($event != null) document.getElementById(title + '-button').classList.remove('added');
+            delete $scope.widgets[title];
+            ctrl.widgetSelections[title] = false;
+            ctrl.count--;
+        }
+ 
+        ctrl.onChange = onChange;
+        ctrl.onDragStart = onDragStart;
+        ctrl.onDragStop = onDragStop;
+
+        function onChange(event, items) {
+            //console.log("onChange event:", event, items, $scope.widgets);
+        };
+
+        function onDragStart(event, ui) {
+            //console.log("onDragStart event: ", ui);
+        };
+
+        function onDragStop(event, ui) {
+        	//console.log("onDragStop event: ", event, ui);
+        };
 
         dashboardData.owners(dashboardItem.id).then(processOwnerResponse);
 
@@ -82,23 +125,29 @@
         function processDashboardDetail(response){
             var data = response;
             ctrl.activeWidgets=[];
-            ctrl.widgets = widgetManager.getWidgets();
+            // collection to hold selected widgets
+            ctrl.widgetSelections={};
+            //ctrl.widgets = widgetManager.getWidgets();
+            ctrl.dashboardTemplate = response.template;
             if(response.template =='widgets'){
                 ctrl.selectWidgetsDisabled = false;
                 ctrl.activeWidgets = response.activeWidgets;
+                ctrl.tabView = 'Widget Management';
+                _.map(ctrl.activeWidgets, function (value, key) { 
+                    addWidget(value);
+                });
             }else{
                 ctrl.selectWidgetsDisabled = true;
                 _.map(ctrl.widgets, function (value, key) {
                     ctrl.activeWidgets.push(key);
                 });
             }
-            // collection to hold selected widgets
-            ctrl.widgetSelections={};
             // iterate through widgets and add existing widgets for dashboard
             _.map(ctrl.widgets, function (value, key) {
                 if(key!='')
                     if(ctrl.activeWidgets.indexOf(key)>-1){
                         ctrl.widgetSelections[key] = true;
+                        
                     }else{
                         ctrl.widgetSelections[key] = false;
                     }
@@ -154,7 +203,7 @@
         function renameSubmit() {
 	    	return $q.when(dashboardData.rename(dashboardItem.id, document.cdf.dashboardTitle.value))
 	    	         .then(function() {
-                         $uibModalInstance.close();
+                         $uibModalInstance.close("success");
                      });
         }
         function ownerFormSubmit(form) {
@@ -170,7 +219,7 @@
 
             return $q.when(dashboardData.updateOwners(dashboardItem.id, prepareOwners($scope.owners)))
                 .then(function() {
-                    $uibModalInstance.close();
+                    $uibModalInstance.close("success");
                 });
         }
 
@@ -194,7 +243,7 @@
                 dashboardData
                     .updateBusItems(dashboardItem.id,submitData)
                     .success(function (data) {
-                        $uibModalInstance.close();
+                        $uibModalInstance.close("success");
                     })
                     .error(function (data) {
                         if(data){
@@ -253,7 +302,12 @@
 
         // Save template - after edit
         function saveWidgets(form) {
-            findSelectedWidgets();
+        	if(ctrl.dashboardTemplate =='widgets'){
+        		findSelectedWidgetsFromWidgetTemplate();        		
+        	} else {
+        		findSelectedWidgets();
+        	}
+        	console.log("Persisting---" + ctrl.selectedWidgets);
             if(form.$valid ){
                 var submitData = {
                     activeWidgets: ctrl.selectedWidgets
@@ -261,7 +315,7 @@
                 dashboardData
                     .updateDashboardWidgets(dashboardItem.id,submitData)
                     .success(function (data) {
-                        $uibModalInstance.close();
+                        $uibModalInstance.close("success");
                     })
                     .error(function (data) {
                         var msg = 'An error occurred while editing dashboard';
@@ -280,23 +334,16 @@
                 }
             }
         }
-
-        function onConfigurationItemBusAppSelect(value){
-            ctrl.configurationItemBusApp = value;
-        }
-
-        function submitScoreSettings(form) {
-            if(form.$valid ){
-                dashboardData
-                    .updateDashboardScoreSettings(dashboardItem.id, ctrl.scoreSettings.scoreEnabled, ctrl.scoreSettings.scoreDisplay)
-                    .success(function (data) {
-                        $uibModalInstance.close();
-                    })
-                    .error(function (data) {
-                        var msg = 'An error occurred while editing dashboard';
-                        swal(msg);
-                    });
+        
+        function findSelectedWidgetsFromWidgetTemplate() {
+            ctrl.selectedWidgets = [];
+            var orderedWigets = _.sortBy($scope.widgets, function(obj) {
+            	 return ((obj.x + 1) + obj.y*$scope.options.width);
+            });
+            for(var i=0; i<orderedWigets.length; i++){
+            	ctrl.selectedWidgets.push(orderedWigets[i].widgetName)
             }
         }
+
     }
 })();

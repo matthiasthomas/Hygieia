@@ -38,6 +38,7 @@ public class TestResultRequest {
         this.max = max;
     }
 
+    @SuppressWarnings({"CPD-START"})
     public Long getStartDateBegins() {
         return startDateBegins;
     }
@@ -86,6 +87,7 @@ public class TestResultRequest {
         this.durationLessThan = durationLessThan;
     }
 
+    @SuppressWarnings({"CPD-END"})
     public Integer getDepth() {
         return depth;
     }

@@ -12,7 +12,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.capitalone.dashboard.model.*;
 import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +21,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.capitalone.dashboard.model.Application;
+import com.capitalone.dashboard.model.AuthType;
+import com.capitalone.dashboard.model.Dashboard;
+import com.capitalone.dashboard.model.DashboardType;
+import com.capitalone.dashboard.model.Owner;
+
+import com.capitalone.dashboard.model.Service;
+import com.capitalone.dashboard.model.ServiceStatus;
 import com.capitalone.dashboard.repository.DashboardRepository;
 import com.capitalone.dashboard.repository.ServiceRepository;
 import com.capitalone.dashboard.util.URLConnectionFactory;
@@ -66,10 +73,12 @@ public class ServiceServiceTest {
     //@Ignore
     public void create() {
         final ObjectId id = ObjectId.get();
+        ObjectId configItemAppId = ObjectId.get();
+        ObjectId configItemComponentId = ObjectId.get();
         final String name = "service";
         final String url = "https://abc123456.com";
         List<String> activeWidgets = new ArrayList<>();
-        final Dashboard dashboard = new Dashboard("template", "title", new Application("app"), new Owner("amit", AuthType.STANDARD), DashboardType.Team, "ASVTEST","BAPTEST",activeWidgets, false, ScoreDisplayType.HEADER);
+        final Dashboard dashboard = new Dashboard("template", "title", new Application("app"), new Owner("amit", AuthType.STANDARD), DashboardType.Team, configItemAppId,configItemComponentId,activeWidgets);
         when(dashboardRepository.findOne(id)).thenReturn(dashboard);
 
         Service service=serviceService.create(id, name,url);

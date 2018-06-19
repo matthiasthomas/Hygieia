@@ -32,6 +32,8 @@ import com.capitalone.dashboard.model.DataResponse;
 import com.capitalone.dashboard.model.deploy.Environment;
 import com.capitalone.dashboard.request.DeployDataCreateRequest;
 import com.capitalone.dashboard.service.DeployService;
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
 
 @RestController
 public class DeployController {
@@ -74,6 +76,8 @@ public class DeployController {
             DocumentBuilder builder = factory.newDocumentBuilder();
             doc = builder.parse(new InputSource(request.getInputStream()));
         } catch (ParserConfigurationException | SAXException | IOException e) {
+			ApplicationDBLogger.log(HygieiaConstants.API,
+					"DeployController.createRundeckBuild", e.getMessage(), e);
             throw new HygieiaException(e);
         }        
         String response = deployService.createRundeckBuild(doc, request.getParameterMap(), executionId, status);

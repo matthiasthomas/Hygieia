@@ -1,5 +1,6 @@
 package com.capitalone.dashboard.model;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Map;
@@ -79,4 +80,35 @@ public class Component extends BaseModel {
         collectorItems.addAll(getCollectorItems().get(type));
         return collectorItems.get(0);
     }
+    
+	/**
+	 * Provides CollectorItem based on given collector type and collector item
+	 * id.
+	 * 
+	 * @param type
+	 *            Type of collector item
+	 * @param collectorItemId
+	 *            Id of collector item
+	 * @return Provides CollectorItem with given collector type and collector
+	 *         item id
+	 */
+	public CollectorItem getCollectorItemForTypeAndId(CollectorType type,
+			ObjectId collectorItemId) {
+
+		if (getCollectorItems().get(type) == null) {
+			return null;
+		}
+
+		List<CollectorItem> collectorItems = new ArrayList<>();
+		collectorItems.addAll(getCollectorItems().get(type));
+
+		CollectorItem result = null;
+		for (CollectorItem collectorItem : collectorItems) {
+			if (collectorItem.getId().equals(collectorItemId)) {
+				result = collectorItem;
+			}
+		}
+
+		return result;
+	}
 }

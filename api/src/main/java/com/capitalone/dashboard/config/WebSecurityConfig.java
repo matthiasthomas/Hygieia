@@ -22,9 +22,10 @@ import com.capitalone.dashboard.auth.AuthProperties;
 import com.capitalone.dashboard.auth.AuthenticationResultHandler;
 import com.capitalone.dashboard.auth.apitoken.ApiTokenAuthenticationProvider;
 import com.capitalone.dashboard.auth.apitoken.ApiTokenRequestFilter;
+import com.capitalone.dashboard.auth.idm.IDMAuthenticationProvider;
+import com.capitalone.dashboard.auth.idm.IDMLoginRequestFilter;
 import com.capitalone.dashboard.auth.ldap.CustomUserDetailsContextMapper;
 import com.capitalone.dashboard.auth.ldap.LdapLoginRequestFilter;
-import com.capitalone.dashboard.auth.sso.SsoAuthenticationFilter;
 import com.capitalone.dashboard.auth.standard.StandardLoginRequestFilter;
 import com.capitalone.dashboard.auth.token.JwtAuthenticationFilter;
 import com.capitalone.dashboard.model.AuthType;
@@ -38,6 +39,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 	
+	@Autowired
+	private IDMAuthenticationProvider idmAuthenticationProvider;
+
 	@Autowired
 	private AuthenticationResultHandler authenticationResultHandler;
 
@@ -56,8 +60,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.csrf().disable()
 			.authorizeRequests().antMatchers("/appinfo").permitAll()
 								.antMatchers("/registerUser").permitAll()
-								.antMatchers("/findUser").permitAll()
 								.antMatchers("/login**").permitAll()
+								.antMatchers("/logout**").permitAll()
 								//TODO: sample call secured with ROLE_API
 								//.antMatchers("/ping").hasAuthority("ROLE_API")
 								.antMatchers(HttpMethod.GET, "/**").permitAll()
@@ -74,8 +78,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                 .antMatchers(HttpMethod.POST, "/commit/github/v3").permitAll()
 								.anyRequest().authenticated()
 									.and()
+								.addFilterBefore(idmLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(standardLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
-								.addFilterBefore(ssoAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(ldapLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(apiTokenRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -93,6 +97,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         if(authenticationProviders.contains(AuthType.LDAP)) {
     		configureLdap(auth);
     		configureActiveDirectory(auth);
+        }
+        
+        if(authenticationProviders.contains(AuthType.IDM)) {
+        	auth.authenticationProvider(idmAuthenticationProvider);
         }
 		
 		auth.authenticationProvider(apiTokenAuthenticationProvider);
@@ -119,10 +127,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 	
 	@Bean
-	protected SsoAuthenticationFilter ssoAuthenticationFilter() throws Exception {
-		return new SsoAuthenticationFilter("/findUser", authenticationManager(), authenticationResultHandler);
+	protected IDMLoginRequestFilter idmLoginRequestFilter() throws Exception {
+		return new IDMLoginRequestFilter("/login/IDM", authenticationManager(), authenticationResultHandler);
 	}
-	
+
 	@Bean
 	protected LdapLoginRequestFilter ldapLoginRequestFilter() throws Exception {
 		return new LdapLoginRequestFilter("/login/ldap", authenticationManager(), authenticationResultHandler);

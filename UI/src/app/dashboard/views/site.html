@@ -1,133 +1,111 @@
 <div id="site" class="main-content">
     <ng-include src="ctrl.templateUrl"></ng-include>
 
-    <div class="col-md-8 col-md-push-2">
+    <div class="container">
         <div class="widget-modal r">
-            <div class="widget-modal-heading">
-                Select Your Dashboard
+            <div class="widget-modal-heading row">
+                <div class="text-2x col-sm-6 text-center visible-xs-block">Select Your Dashboard</div>
+                <div class="text-2x col-sm-6 text-left hidden-xs">Select Your Dashboard</div>
+                <div class="text-right hidden-xs">
+                    <div class="create-dashboard-button btn btn-default btn-wide-1x" ng-click="ctrl.createDashboard()" ng-if="ctrl.showAuthentication && ctrl.showCreate">
+                        <span class="fa fa-plus-circle"></span> Create a new dashboard
+                    </div>
+                </div>
+                <div class="create-dashboard-container visible-xs-block">
+                    <div class="btn-create-dashboard btn-primary" ng-class="{'active' : ctrl.showMobileButton }" ng-if="ctrl.showAuthentication && ctrl.showCreate" ng-init="ctrl.showMobileButton = false" ng-click="ctrl.showMobileButton = !ctrl.showMobileButton;"><i class="fa fa-plus" aria-hidden="true"></i></div>
+                    <div class="create-dashboard-button btn btn-default btn-wide-1x" ng-click="ctrl.createDashboard()" ng-if="ctrl.showMobileButton && ctrl.showCreate">
+                        Create a new dashboard
+                    </div>
+                </div>
             </div>
             <div class="widget-modal-body">
                 <div class="text-center">
-                    <div class="btn-group dashboard-type-list" role="group" aria-label="Basic example">
-                        <button type="button"
+                    <div class="filter-container">
+                        <input type="search"
+                               id="filter"
+                               class="form-control text-center"
+                               ng-model="ctrl.search"
+                               placeholder="Type to find dashboard" />
+                    </div>
+                    <div class="btn-group dashboard-type-list hidden-xs" role="group" aria-label="Basic example">
+                        <a
                                 class="btn btn-secondary"
                                 ng-class="{'btn-info': ctrl.dashboardType == undefined}"
-                                ng-click="ctrl.setType()">All dashboards</button>
+                                ng-href="#/">All dashboards</a>
 
-                        <button type="button"
+                        <a
                                 class="btn btn-secondary"
-                                ng-repeat="item in ctrl.dashboardTypes"
+                                ng-repeat="item in ctrl.dashboardTypes track by $index"
                                 ng-class="{'btn-info': ctrl.dashboardType == item.id}"
-                                ng-click="ctrl.setType(item.id)">
+                                ng-href="#/tab/{{$index + 1}}">
                             <span class="fa {{item.icon}}" ng-if="item.icon"></span>
 
-                            {{item.name}} dashboards
-                        </button>
+                            {{item.name}} dashboards 
+                        </a>
                     </div>
-                </div>
-
-                <div class="gap">
-                    <input type="search" name="collectorItemId" class="form-control" placeholder="Type to find dashboard"
-                           ng-model="ctrl.search"
-                           uib-typeahead="item.description for item in ctrl.filterByTitle($viewValue)" typeahead-focus
-                           typeahead-template-url="jobUrlTemplate.html"
-                           typeahead-min-length="0"
-                           typeahead-wait-ms="250"
-                           autocomplete="off"
-                           typeahead-no-results="noResults"
-                           required>
+                    <div class="form-group visible-xs-block">
+                          <label>Select Dashboard Type</label>
+                          <select class="form-control" ng-model="ctrl.selecedDashboard" ng-change='ctrl.showType(item)'
+                                      ng-options="item as item.name for item in ctrl.dashboardTypes">
+                                      <option value="">All dashboards</option>
+                          </select>
+                    </div>
                 </div>
 
                 <div class="row gap">
-                    <div class="col-sm-4 col-sm-push-8 text-center">
-                        <div>
-                            <div class="create-dashboard-button btn btn-default btn-wide-2x" ng-click="ctrl.createDashboard()" ng-show="ctrl.showAuthentication">
-                                <span class="fa fa-stack fa-lg">
-                                    <span class="fa-circle-thin fa-stack-2x"></span>
-                                    <span class="fa-plus fa-stack-1x"></span>
-                                </span>
-                                <br/>
-                                Create a new<br/>dashboard
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="col-sm-8 col-sm-pull-4">
+                    
+                    <div class="col-sm-12">
                         <div ng-show="ctrl.showAuthentication" id="myDashboardsSection">
-                            <div class="gap">
-                                    <div class="text-2x">My Dashboards <span class="label label-default"></span></div>
+                            <div class="text-2x lbl-dashboard-type">My <span ng-if="ctrl.selecedDashboard">{{ctrl.selecedDashboard.id}} </span>Dashboards <span class="label label-default"></span></div>
 
                             <div class="text-center" ng-hide="ctrl.mydash">Loading Your Dashboards...</div>
                             <div class="text-center" ng-show="ctrl.mydash && !mydashboards.length">
                                 No results
                             </div>
 
-                                    <ul class="list-animate list-group text-left">
-                                        <li class="list-group-item"
-                                            dir-paginate="myitem in mydashboards = (ctrl.mydash | filter:q | itemsPerPage: ctrl.getPageSize() | orderBy: 'name')"
-                                            current-page="currentPageMyDash"
-                                            total-items= ctrl.getTotalItemsMyDash()
-                                            pagination-id="myDashboard">
-                                        <span class="pull-right">
+                            <ul class="list-animate list-group text-left">
+                                <li class="list-group-item" ng-repeat="myitem in mydashboards = (ctrl.mydash | filter:ctrl.filterDashboards | orderBy: 'name')">
+                                    <span class="pull-right">
 
 
-                                       <a href ng-click="ctrl.editDashboard(myitem,'lg')">
+                                       <a href ng-click="ctrl.editDashboard(myitem,'lg')" ng-if="!ctrl.isViewOnly">
                                            <span class="fa fa-lg fa-cog text-success"></span>
                                        </a>
 
-                                       <a href id="deleteDashboardButton" delete-confirm title="Are you sure you want to delete?" confirm-action="ctrl.deleteDashboard(myitem)">
+                                       <a href id="deleteDashboardButton" delete-confirm confirm-action="ctrl.deleteDashboard(myitem)" ng-if="!ctrl.isViewOnly  && !ctrl.isManager">
                                             <span class="fa fa-lg fa-trash text-danger"></span>
                                        </a>
                                     </span>
 
-                                            <a class="btn-block clickable" title="{{myitem.name}}" ng-click="ctrl.open(myitem.id)">
-                                                <span class="fa fa-lg left-icon" ng-class="{'fa-cubes' : myitem.isProduct}"></span>
-                                                <span   ng-class="{'text-danger' : myitem.showError}" class="word-overflow-wrap">
-                                                    {{ myitem.name}}
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-
-                                    <dir-pagination-controls
-                                            max-size="8"
-                                            boundary-links="true"
-                                            direction-links="true"
-                                            on-page-change="ctrl.pageChangeHandlerForMyDash(newPageNumber)"
-                                            pagination-id="myDashboard">
-                                    </dir-pagination-controls>
-                            </div>
+                                    <a class="btn-block clickable" title="{{myitem.name}}" ng-click="ctrl.open(myitem.id, myitem.name)">
+                                        <span class="fa fa-lg left-icon" ng-class="{'fa-cubes' : myitem.isProduct, 'fa-snowflake-o' : myitem.isAggregate}"></span>
+                                        <span   ng-class="{'text-danger' : myitem.showError}">
+                                            {{ myitem.name | trunText:50 }}
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
 
                         <div class="gap">
-                            <div class="text-2x">All Dashboards</span></div>
+                            <div class="text-2x lbl-dashboard-type">All <span ng-if="ctrl.selecedDashboard">{{ctrl.selecedDashboard.id}} </span>Dashboards</span></div>
 
                             <div class="text-center" ng-hide="ctrl.dashboards">Loading Dashboards...</div>
+
+                            <ul class="list-animate list-group text-left">
+                                <li  title="{{item.name}}"class="list-group-item clickable" ng-click="ctrl.open(item.id, item.name)"
+                                    ng-repeat="item in filteredDashboards = (ctrl.dashboards | filter: ctrl.filterDashboards | orderBy:'name')">
+                                    <span class="fa fa-lg left-icon" ng-class="{'fa-cubes' : item.isProduct, 'fa-snowflake-o' : item.isAggregate}"></span>
+                                    <span class="fa fa-angle-right list-group-item-right"></span>
+
+                                </span>
+                                    {{item.name | trunText:50}}
+                                </li>
+                            </ul>
+
                             <div class="text-center" ng-show="ctrl.dashboards && !filteredDashboards.length">
                                 No results
                             </div>
-
-                            <ul class="list-animate list-group text-left">
-                                <li  title="{{item.name}}"class="list-group-item clickable" ng-click="ctrl.open(item.id)"
-                                     dir-paginate="item in filteredDashboards = (ctrl.dashboards | filter:q | itemsPerPage: ctrl.getPageSize() | orderBy: 'name')"
-                                     current-page="currentPage"
-                                     total-items= ctrl.getTotalItems()
-                                     pagination-id="allDashboard">
-                                    <span class="fa fa-lg left-icon" ng-class="{'fa-cubes' : item.isProduct}"></span>
-
-                                    <span class="fa fa-angle-right list-group-item-right"></span>
-
-                                <span class="word-overflow-wrap">{{item.name}}</span>
-                                </li>
-                            </ul>
-                            <dir-pagination-controls
-                                    max-size="8"
-                                    boundary-links="true"
-                                    direction-links="true"
-                                    on-page-change="ctrl.pageChangeHandler(newPageNumber)"
-                                    pagination-id="allDashboard">
-                            </dir-pagination-controls >
-
                         </div>
                     </div>
                 </div>
@@ -135,9 +113,3 @@
         </div>
     </div>
 </div>
-
-<script type="text/ng-template" id="jobUrlTemplate.html">
-    <a title={{match.model.options.instanceUrl}}>
-        <span ng-bind-html="match.label | uibTypeaheadHighlight:query"/>
-    </a>
-</script>

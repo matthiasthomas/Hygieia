@@ -28,8 +28,10 @@
       }
 
       this.isAuthenticated = function () {
+    	// Expiry token is required
         if(this.getUsername() && !jwtHelper.isTokenExpired(tokenService.getToken())) {
-          return true;
+    	//if(this.getUsername()) {
+    		  return true;
         }
         return false;
       }
@@ -41,6 +43,12 @@
       this.isAdmin = function () {
         var user = getUser();
         if (user.roles && user.roles.indexOf("ROLE_ADMIN") > -1) return true;
+        return false;
+      }
+	  
+      this.isManager = function () {
+        var user = getUser();
+        if (user.roles && user.roles.indexOf("ROLE_MANAGER") > -1) return true;
         return false;
       }
 
@@ -60,9 +68,10 @@
       	var hasPermission = false;
       	owners.forEach(function (owner) {
       		if (owner.username === username && owner.authType === authtype) {
-      			hasPermission = true;
+				if(this.isManager())
+					hasPermission = true;
       		}
-      	});
+      	}, this);
 
       	return hasPermission;
       }

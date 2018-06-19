@@ -12,6 +12,7 @@ package com.capitalone.dashboard.util;
  */
 public final class FeatureCollectorConstants {
         public static final String JIRA = "Jira";
+        public static final String PIVOTAL = "Pivotal";
         public static final String VERSIONONE = "VersionOne";
         public static final String GITLAB = "GitlabFeature";
         @SuppressWarnings("PMD.AvoidUsingHardCodedIP")

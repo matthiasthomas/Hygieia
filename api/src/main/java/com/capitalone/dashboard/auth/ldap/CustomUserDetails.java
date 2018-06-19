@@ -4,6 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
 
 import java.util.Collection;
+import java.util.Locale;
 
 public class CustomUserDetails implements LdapUserDetails {
     private String displayName;
@@ -50,11 +51,11 @@ public class CustomUserDetails implements LdapUserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return username==null?username:username.toLowerCase(Locale.US);
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.username = username==null?username:username.toLowerCase(Locale.US);
     }
 
     @Override

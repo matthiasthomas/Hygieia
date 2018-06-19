@@ -1,0 +1,21 @@
+<div>
+	<div id="header">
+		<nav class="navbar navbar-default navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="row">
+					<a ng-href="#/" class="col-xs-3 dashboard-logo"></a>
+					<div class="col-xs-9 hidden-sm hidden-md hidden-slg visible-xs-inline-block text-right pull-right">{{::ctrl.dashboard.title | trunText:25}}</div>
+					<div class="col-xs-12 hidden-xs visible-sm-inline-block visible-md-inline-block visible-lg-inline-block">{{::ctrl.dashboard.title | trunText:50}}</div>
+				</div>
+			</div>
+		</nav>
+	</div>
+
+	<div class="dashboard-widgets container-fluid" widget-container dashboard="ctrl.dashboard">
+		<div class="row">
+			<div class="col-xs-12">
+				<widget name="aggregate" header="false"></widget>
+			</div>
+		</div>
+	</div>
+</div>

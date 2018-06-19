@@ -8,7 +8,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 
+import com.capitalone.dashboard.util.ApplicationDBLogger;
+import com.capitalone.dashboard.util.HygieiaConstants;
+
 import javax.naming.NamingException;
+
 import java.util.Collection;
 
 @Configuration
@@ -56,6 +60,7 @@ public class CustomUserDetailsContextMapper extends LdapUserDetailsMapper {
             }
         } catch (NamingException e) {
             LOGGER.warn("NamingException: " + e);
+            ApplicationDBLogger.log(HygieiaConstants.API, "LOGIN", "NamingException: " + e, e);
         }
         LOGGER.info("Attributes size: " + ctx.getAttributes().size());
 

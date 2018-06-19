@@ -28,20 +28,28 @@ public interface ScopeRepository extends CrudRepository<Scope, ObjectId>,
 	 *         existing collection
 	 */
 	@Query
-	List<Scope> findTopByCollectorIdAndChangeDateGreaterThanOrderByChangeDateDesc(
-			ObjectId collectorId, String changeDate);
+	List<Scope> findTopByCollectorIdAndSourceAndChangeDateGreaterThanOrderByChangeDateDesc(
+			ObjectId collectorId, String source,String changeDate);
 
 	@Query(value = "{'pId' : ?0}", fields="{'pId' : 1}")
 	List<Scope> getScopeIdById(String pId);
+	
+	@Query(value = "{'pId' : ?0,'source' : ?1}", fields="{'pId' : 1}")
+	List<Scope> getScopeIdByIdAndSource(String pId,String source);
 
+	@Query(value = "{'pId' : ?0,'source' : ?1,'collectorId' : ?2}", fields="{'pId' : 1}")
+	List<Scope> getScopeIdByIdAndSourceAndCollectorId(String pId,String source,ObjectId collectorId);
+	
 	@Query
 	List<Scope> findByOrderByProjectPathDesc();
 
-	@Query(value = "{'pId' : ?0 }")
-	List<Scope> getScopeById(String pId);
+	@Query(value = "{'pId' : ?0 ,'source' : ?1}")
+	List<Scope> getScopeByIdAndSource(String pId,String source);
 
 	@Query(value = "{ 'collectorId' : ?0 }")
 	List<Scope> findByCollectorId(ObjectId collectorId);
 
 	Page<Scope> findAllByCollectorIdAndNameContainingIgnoreCase(ObjectId collectorId, String name, Pageable pageable);
+	
+	Page<Scope> findAllByCollectorIdAndSourceAndNameContainingIgnoreCase(ObjectId collectorId, String source, String name,Pageable pageable);
 }

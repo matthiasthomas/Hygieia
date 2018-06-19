@@ -5,24 +5,30 @@ import com.capitalone.dashboard.model.*;
 import com.capitalone.dashboard.repository.BuildRepository;
 import com.capitalone.dashboard.repository.CollectorRepository;
 import com.capitalone.dashboard.repository.ComponentRepository;
+import com.capitalone.dashboard.repository.DashboardRepository;
 import com.capitalone.dashboard.request.BuildDataCreateRequest;
 import com.capitalone.dashboard.request.BuildSearchRequest;
 import com.capitalone.dashboard.request.CollectorRequest;
 import com.mysema.query.BooleanBuilder;
+
 import org.apache.commons.lang.StringUtils;
+import org.bson.types.ObjectId;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BuildServiceImpl implements BuildService {
 
     private final BuildRepository buildRepository;
     private final ComponentRepository componentRepository;
+    private final DashboardRepository dashboardRepository;
     private final CollectorRepository collectorRepository;
     private final CollectorService collectorService;
 
@@ -31,17 +37,31 @@ public class BuildServiceImpl implements BuildService {
     public BuildServiceImpl(BuildRepository buildRepository,
                             ComponentRepository componentRepository,
                             CollectorRepository collectorRepository,
+                            DashboardRepository dashboardRepository,
                             CollectorService collectorService) {
         this.buildRepository = buildRepository;
         this.componentRepository = componentRepository;
         this.collectorRepository = collectorRepository;
         this.collectorService = collectorService;
+        this.dashboardRepository = dashboardRepository;
     }
 
     @Override
     public DataResponse<Iterable<Build>> search(BuildSearchRequest request) {
         Component component = componentRepository.findOne(request.getComponentId());
-        CollectorItem item = component.getFirstCollectorItemForType(CollectorType.Build);
+        
+		// START HYG-180 : Amended to find details based on build selection, if
+		// available.
+		CollectorItem item = null;
+		if (request.getCollectorItemId() != null) {
+			item = component.getCollectorItemForTypeAndId(
+					CollectorType.Build, request.getCollectorItemId());
+		} else {
+			item = component.getFirstCollectorItemForType(CollectorType.Build);
+		}
+		// END HYG-180 : Amended to find details based on build selection, if
+		// available.
+        
         if (item == null) {
             Iterable<Build> results = new ArrayList<>();
             return new DataResponse<>(results, new Date().getTime());
@@ -112,6 +132,7 @@ public class BuildServiceImpl implements BuildService {
         return build.getId().toString();
 
     }
+    
 
     private Collector createCollector() {
         CollectorRequest collectorReq = new CollectorRequest();
@@ -125,6 +146,9 @@ public class BuildServiceImpl implements BuildService {
         allOptions.put("jobUrl", "");
         allOptions.put("instanceUrl", "");
         allOptions.put("jobName","");
+        allOptions.put("deploymentFrequency","");
+        allOptions.put("deploymentSuccessRate","");
+        allOptions.put("deploymentSpeed","");
         col.setAllFields(allOptions);
         col.setUniqueFields(allOptions);
         return collectorService.createCollector(col);
@@ -140,6 +164,9 @@ public class BuildServiceImpl implements BuildService {
         option.put("jobName", request.getJobName());
         option.put("jobUrl", request.getJobUrl());
         option.put("instanceUrl", request.getInstanceUrl());
+        option.put("deploymentFrequency", request.getDeploymentFrequency());
+        option.put("deploymentSuccessRate", request.getDeploymentSuccessRate());
+        option.put("deploymentSpeed", request.getDeploymentSpeed());
         tempCi.setNiceName(request.getNiceName());
         tempCi.getOptions().putAll(option);
         if (StringUtils.isEmpty(tempCi.getNiceName())) {
@@ -171,4 +198,31 @@ public class BuildServiceImpl implements BuildService {
         build.getCodeRepos().addAll(rbs);
         return buildRepository.save(build); // Save = Update (if ID present) or Insert (if ID not there)
     }
+
+	@Override
+	public DataResponse<BuildAggregateData> getAggregateForProductDashboard(
+			ObjectId dashboardId) {
+		@SuppressWarnings({"CPD-START"})
+		Dashboard dashboard =dashboardRepository.findOne(dashboardId);
+		BuildAggregateData data =new BuildAggregateData(dashboardId);
+		List<Widget> wList =dashboard.getWidgets();
+		if(!CollectionUtils.isEmpty(wList))
+		{
+			List<ObjectId> componentList = wList.stream().filter(widget1 -> "build".equals(widget1.getName())).map(x -> x.getComponentId()).collect(Collectors.toList());
+			if(!CollectionUtils.isEmpty(componentList))
+			{
+				@SuppressWarnings({"CPD-END"}) 
+				Component component =componentRepository.findOne(componentList.get(0));
+				if(component!=null)
+				{
+					collectorService.getCollectorItemForComponent(
+							component.getId().toString(),
+							CollectorType.Build.toString()).forEach(
+							item -> data.addJob(item));
+				}
+			}
+		}
+		
+		return new DataResponse(data,new Date().getTime());
+	}
 }

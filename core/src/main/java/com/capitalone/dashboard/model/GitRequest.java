@@ -2,27 +2,13 @@ package com.capitalone.dashboard.model;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
 
 @Document(collection="gitrequests")
-public class GitRequest  {
-
-    // fields added from SCM class that we are not extending anymore
-    private String scmUrl;
-    private String scmBranch;
-    private String scmRevisionNumber;
-    //squash merge commit may be different from pr commit
-    private String scmMergeEventRevisionNumber;
-    private String scmCommitLog;
-    private long scmCommitTimestamp;
-    private String scmAuthor;
-    private long numberOfChanges;
-    // fields added above are from SCM class that we are not extending anymore
-
+public class GitRequest extends SCM {
     @Id
     private ObjectId id;
     private String orgName;
@@ -32,7 +18,6 @@ public class GitRequest  {
     private String targetRepo;
     private String targetBranch;
     private String number;
-    @Indexed
     private ObjectId collectorItemId;
     private long updatedAt;
     private long createdAt;
@@ -46,77 +31,9 @@ public class GitRequest  {
     private String commentsUrl;
     private String reviewCommentsUrl;
     private List<Comment> comments;
-    private List<Review> reviews;
-    private List<CommitStatus> commitStatuses;
+    private List<Comment> reviewComments;
     private String headSha;
     private String baseSha;
-    private String requestType;
-    private List<Commit> commits;
-
-
-    public long getNumberOfChanges() {
-        return numberOfChanges;
-    }
-
-    public void setNumberOfChanges(long numberOfChanges) {
-        this.numberOfChanges = numberOfChanges;
-    }
-
-    public String getScmAuthor() {
-        return scmAuthor;
-    }
-
-    public void setScmAuthor(String scmAuthor) {
-        this.scmAuthor = scmAuthor;
-    }
-
-    public long getScmCommitTimestamp() {
-        return scmCommitTimestamp;
-    }
-
-    public void setScmCommitTimestamp(long scmCommitTimestamp) {
-        this.scmCommitTimestamp = scmCommitTimestamp;
-    }
-
-    public String getScmBranch() {
-        return scmBranch;
-    }
-
-    public void setScmBranch(String scmBranch) {
-        this.scmBranch = scmBranch;
-    }
-
-    public String getScmCommitLog() {
-        return scmCommitLog;
-    }
-
-    public void setScmCommitLog(String scmCommitLog) {
-        this.scmCommitLog = scmCommitLog;
-    }
-
-    public String getScmUrl() {
-        return scmUrl;
-    }
-
-    public void setScmUrl(String scmUrl) {
-        this.scmUrl = scmUrl;
-    }
-
-    public String getScmRevisionNumber() {
-        return scmRevisionNumber;
-    }
-
-    public void setScmRevisionNumber(String scmRevisionNumber) {
-        this.scmRevisionNumber = scmRevisionNumber;
-    }
-
-    public String getScmMergeEventRevisionNumber() {
-        return scmMergeEventRevisionNumber;
-    }
-
-    public void setScmMergeEventRevisionNumber(String scmMergeEventRevisionNumber) {
-        this.scmMergeEventRevisionNumber = scmMergeEventRevisionNumber;
-    }
 
     public String getRequestType() {
         return requestType;
@@ -126,6 +43,7 @@ public class GitRequest  {
         this.requestType = requestType;
     }
 
+    private String requestType;
 
     public ObjectId getId() {
         return id;
@@ -279,28 +197,12 @@ public class GitRequest  {
         this.comments = comments;
     }
 
-    public List<Review> getReviews() {
-        return reviews;
+    public List<Comment> getReviewComments() {
+        return reviewComments;
     }
 
-    public void setReviews(List<Review> reviews) {
-        this.reviews = reviews;
-    }
-
-    public List<CommitStatus> getCommitStatuses() {
-        return commitStatuses;
-    }
-
-    public void setCommitStatuses(List<CommitStatus> commitStatuses) {
-        this.commitStatuses = commitStatuses;
-    }
-
-    public List<Commit> getCommits() {
-        return commits;
-    }
-
-    public void setCommits(List<Commit> commits) {
-        this.commits = commits;
+    public void setReviewComments(List<Comment> reviewComments) {
+        this.reviewComments = reviewComments;
     }
 
     public String getHeadSha() {
